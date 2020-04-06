@@ -32,7 +32,7 @@ class Display {
         void render_help(bool refresh, ControlSubState phase);
 
         // screen just with the given global position
-        void render_position(bool refresh, float ra, float dec);
+        void render_position(bool refresh, double ra, double dec);
 
         // main screen with some indicators and time
         void render_main(bool refresh, ControlSubState phase, const DateTime& lst, bool tracking, bool moving, bool shooting);
@@ -68,7 +68,7 @@ class Display {
         void render_calibration_selection(bool refresh, ControlSubState phase, int ra[3], int dec[3]);
 
         // screen which confirms loading of the mount calibration, also displays the cal. values
-        void render_calibration_loaded(bool refresh, float pole_ra, float pole_dec, float ra_offset);
+        void render_calibration_loaded(bool refresh, double pole_ra, double pole_dec, double ra_offset);
         
         // catalogue menu, leads to object selection in three defined catalogues - Messier, NGC and Caldwell
         void render_catalogue(bool refresh, ControlSubState phase, int object_number);
@@ -80,7 +80,7 @@ class Display {
         void render_not_found(bool refresh);
 
         // catalogue search results, display the object info including magnitude, size and type
-        void render_catalogue_results(bool refresh, ControlSubState phase, int object_number, float magnitude, float size_a, float size_b, char type[5]);
+        void render_catalogue_results(bool refresh, ControlSubState phase, int object_number, double magnitude, double size_a, double size_b, char type[5]);
 
         // brightness setting
         void render_brightness(bool refresh, int brightness, bool changed);
@@ -98,14 +98,14 @@ class Display {
         // print signed 'number' padded by spaces from left to reach width of 'characters'
         void print_padded(int number, int characters);
 
-        // print signed floating point 'number' padded by spaces from left to reach width of 'characters'
-        void print_padded_float(float number, int characters);
+        // print signed doubleing point 'number' padded by spaces from left to reach width of 'characters'
+        void print_padded_double(double number, int characters);
 
         // converts decimal number to degrees, arc minutes, arc seconds format
-        void dec_to_dms(float decimal, int dms[3]);
+        void dec_to_dms(double decimal, int dms[3]);
 
         // converts decimal number to hours, minutes, seconds format
-        void dec_to_his(float decimal, int his[3]);
+        void dec_to_his(double decimal, int his[3]);
 
         // changes state of _blink according to last blink time, true if changed, false otherwise
         bool should_blink();

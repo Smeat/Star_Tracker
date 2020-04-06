@@ -28,7 +28,7 @@
 
 // Alignement is done by optimization of rotation matrix parameters (three), this is done 
 // by a simple evolutionary strategy. Exact numeric solutions can be unstable due to Arduino
-// floating point precision and I haven't found a better soluiton than this :( 
+// doubleing point precision and I haven't found a better soluiton than this :( 
 
 #define CAL_BUFFER_SIZE         12         // maximal number of point pairs used for alignmenet
 #define OPT_PRECISION           5000000    // if objective is less then 1/OPT_PRECISION, opt. stops

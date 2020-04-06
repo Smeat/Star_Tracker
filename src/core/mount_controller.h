@@ -11,9 +11,9 @@ class MountController {
   
   public:
 
-    using deg_t = float;
-    struct coord_t { float dec; float ra; };
-    struct cartesian_t { float x; float y; float z; };
+    using deg_t = double;
+    struct coord_t { double dec; double ra; };
+    struct cartesian_t { double x; double y; double z; };
 
     MountController(MotorController& mc) : _motors(mc) {}
 
@@ -75,12 +75,12 @@ class MountController {
     // check whether we are tracking something
     inline boolean is_tracking() { return _is_tracking; }
 
-    static float to_time_global_ra(float ra) {
+    static double to_time_global_ra(double ra) {
         // see _mount_pole comments in for the explanation of 180-...
         return fmod(180 - ra +  15 * Clock::get_decimal_LST(), 360);
     }
 
-    static float to_future_global_ra(float ra, float decimal_future_hours) {
+    static double to_future_global_ra(double ra, double decimal_future_hours) {
         // see _mount_pole comments in for the explanation of 180-...
         return fmod(180 - ra +  15 * (Clock::get_decimal_LST() + decimal_future_hours), 360);
     }
@@ -119,8 +119,8 @@ class MountController {
         }
     };
 
-    inline float to_deg(float rad) { return rad / M_PI * 180; }
-    inline float to_rad(float deg) { return deg / 180 * M_PI; }
+    inline double to_deg(double rad) { return rad / M_PI * 180; }
+    inline double to_rad(double deg) { return deg / 180 * M_PI; }
 
     coord_t angle_to_revolutions(coord_t angles) {
         return { angles.dec * REDUCTION_RATIO_DEC / DEG_PER_MOUNT_REV_DEC,
@@ -132,7 +132,7 @@ class MountController {
                  revolutions.ra  * DEG_PER_MOUNT_REV_RA  / REDUCTION_RATIO_RA };
     }
 
-    inline float to_180_range(float angle) {
+    inline double to_180_range(double angle) {
         if (angle >  180) angle -= 360;
         if (angle < -180) angle += 360;
         return angle;
@@ -151,13 +151,13 @@ class MountController {
     coord_t cartesian_to_polar(cartesian_t cartesian);
 
     // make the transition matrix which is a product of three rotations
-    matrix_t make_transition_matrix(coord_t pole, float ra_offset) {
+    matrix_t make_transition_matrix(coord_t pole, double ra_offset) {
         return get_ra_transition(ra_offset) * 
                get_dec_transition(pole.dec) * 
                get_ra_transition(pole.ra);
     }
     
-    matrix_t make_inverse_transition_matrix(coord_t pole, float ra_offset) {
+    matrix_t make_inverse_transition_matrix(coord_t pole, double ra_offset) {
         return get_ra_transition_inverse(pole.ra) * 
                get_dec_transition_inverse(pole.dec) * 
                get_ra_transition_inverse(ra_offset);
@@ -175,10 +175,10 @@ class MountController {
     // coordinate system defined by the 'pole' and 'offset' at a particular time 't'. The point has 
     // angular speed in the global coordinates 0 deg/s DEC and 'ra_speed' deg/s RA. USE ONLY FOR SMALL 
     // TRANSFORMS NEARBY THE REAL GLOBAL POLE.
-    coord_t get_ra_speed_transform(deg_t ra_speed, float t, coord_t point, coord_t pole, deg_t ra_offset);
+    coord_t get_ra_speed_transform(deg_t ra_speed, double t, coord_t point, coord_t pole, deg_t ra_offset);
 
     // returns a number from standard normal distribution using transform from uniform distribution
-    float random_normal();
+    double random_normal();
 
     boolean _is_tracking;
 

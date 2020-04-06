@@ -109,8 +109,8 @@ void Control::main_menu() {
     else if (_keypad.pushed(C_BRIGHTNESS))  change_state(BRIGHT);	
     else if (_keypad.pushed(C_SHOOT))       _camera.shoot(_shooting_time_buffer, _shooting_delay_buffer);
     else if (_keypad.pressed(C_CALIBRATION)) {		
-        float ra_offset;
-        load(ra_offset, EEPROM_ADDR + 6, 0.0f, 360.0f, (float)DEFUALT_RA_OFFSET);
+        double ra_offset;
+        load(ra_offset, EEPROM_ADDR + 6, 0.0, 360.0, (double)DEFUALT_RA_OFFSET);
 
         MountController::coord_t pole;
         load(pole, EEPROM_ADDR + 10);
@@ -320,7 +320,7 @@ void Control::calibration_menu() {
             _calibration_buffer_size = 0;
 
             MountController::coord_t pole;
-            float offset; 
+            double offset; 
             _mount.get_mount_pole(pole, offset);
             save(offset, EEPROM_ADDR + 6);
             save(pole,   EEPROM_ADDR + 10);
@@ -416,8 +416,8 @@ void Control::catalogue_menu() {
         
         _display.render_wait(true);
         
-        float magnitude;
-        float size_a, size_b; 
+        double magnitude;
+        double size_a, size_b; 
         char type[6];
 
         if (find_in_catalogue(_substate, _catalogue_buffer, _kernel, magnitude, size_a, size_b, type)) {
@@ -448,7 +448,7 @@ void Control::manual_control(ControlSubState nothing, ControlSubState degrees, C
 
     if (_mount.is_moving() || _substate == nothing) return;
 
-    float conversion_ratio = 1.0f;
+    double conversion_ratio = 1.0f;
     if (_substate == minutes) conversion_ratio = 60.0f/5.0f;
     else if (_substate == seconds) conversion_ratio = 3600.0f/5.0f;
 
@@ -480,7 +480,7 @@ int Control::get_pushed_digit() {
 }
 
 bool Control::find_in_catalogue(ControlSubState catalogue, int object, MountController::coord_t& coords, 
-                                float& magnitude, float& size_a, float& size_b, char type[6]) {
+                                double& magnitude, double& size_a, double& size_b, char type[6]) {
 #ifdef BOARD_ATMEGA
     #ifdef DEBUG_CONTROL
         Serial.println(F("=============="));

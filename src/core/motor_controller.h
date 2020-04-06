@@ -30,26 +30,26 @@ class MotorController {
         void stop();
 
         // estimates time (millis) of the complete fast_turn duration
-        float estimate_fast_turn_time(float revs_dec, float revs_ra);
+        double estimate_fast_turn_time(double revs_dec, double revs_ra);
         
         // make a fast turn with subsequent slow turn for compensate the coarse resolution of full step
-        void fast_turn(float revs_dec, float revs_ra, boolean queueing);
+        void fast_turn(double revs_dec, double revs_ra, boolean queueing);
 
         // make a turn with given motor revolutions per second and with microstepping enabled (implies low speed)
-        void slow_turn(float revs_dec, float revs_ra, float speed_dec, float speed_ra, boolean queueing);
+        void slow_turn(double revs_dec, double revs_ra, double speed_dec, double speed_ra, boolean queueing);
 
         // interrupt service rutine
         void trigger();
 
         // returns the number of revolutions relative to the starting position
-        void get_made_revolutions(float& dec, float& ra) {
+        void get_made_revolutions(double& dec, double& ra) {
             #ifdef DEBUG
                 Serial.println(F("Revolutions"));
                 Serial.print(F(" DEC: ")); Serial.println(_dec_balance); 
                 Serial.print(F("  RA: ")); Serial.println(_ra_balance); 
             #endif
-            dec = (float) _dec_balance / 2.0f / STEPS_PER_REV_DEC / MICROSTEPPING_MUL;
-            ra = (float) _ra_balance / 2.0f / STEPS_PER_REV_RA / MICROSTEPPING_MUL;
+            dec = (double) _dec_balance / 2.0f / STEPS_PER_REV_DEC / MICROSTEPPING_MUL;
+            ra = (double) _ra_balance / 2.0f / STEPS_PER_REV_RA / MICROSTEPPING_MUL;
         }
 
     private:
@@ -72,8 +72,8 @@ class MotorController {
 
         // structre holding a command for motors
         struct command_t {
-            float revs_dec;  // desired number of revolutions of DEC
-            float revs_ra;  // desired number of revolutions of RA
+            double revs_dec;  // desired number of revolutions of DEC
+            double revs_ra;  // desired number of revolutions of RA
             unsigned long delay_start_dec;  // starting delay between steps - DEC
             unsigned long delay_start_ra;  // starting delay between steps - RA
             unsigned long delay_end_dec;  // minimal delay between steps - DEC
@@ -82,7 +82,7 @@ class MotorController {
         };
 
         // estimates time (millis) of the complete fast_turn duration of a single motor
-        float estimate_motor_fast_turn_time(float steps, int accel_each, int accel_amount, int dalay_start, int dalay_end);
+        double estimate_motor_fast_turn_time(double steps, int accel_each, int accel_amount, int dalay_start, int dalay_end);
 
         // make a turn of specified angles, speed (starting, ending) and command queueing
         void turn_internal(command_t cmd, bool queueing);
@@ -99,12 +99,12 @@ class MotorController {
         // returns true if 'value' is defferent from current value (1 or 0) and changes pin appropriately 
         inline bool change_pin(byte pin, byte value);
 
-        inline void revs_to_steps(float &steps_dec, float &steps_ra, float revs_dec, float revs_ra, bool microstepping) {
+        inline void revs_to_steps(double &steps_dec, double &steps_ra, double revs_dec, double revs_ra, bool microstepping) {
             steps_dec = abs(revs_dec) * STEPS_PER_REV_DEC * (microstepping ? MICROSTEPPING_MUL : 1);
             steps_ra  = abs(revs_ra)  * STEPS_PER_REV_RA  * (microstepping ? MICROSTEPPING_MUL : 1);
         }
 
-        inline void steps_to_revs(float &revs_dec, float &revs_ra, float steps_dec, float steps_ra, bool microstepping) {
+        inline void steps_to_revs(double &revs_dec, double &revs_ra, double steps_dec, double steps_ra, bool microstepping) {
             revs_dec = steps_dec / STEPS_PER_REV_DEC / (microstepping ? MICROSTEPPING_MUL : 1);
             revs_ra  = steps_ra  / STEPS_PER_REV_RA  / (microstepping ? MICROSTEPPING_MUL : 1);
         }

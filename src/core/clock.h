@@ -32,7 +32,7 @@ class Clock  {
         // returns current datetime in decimal format with subsecond precision
         static double get_decimal_time() { 
             auto dt = _time.now();
-            return dt.hour() + dt.minute() / 60.0 + ((float)dt.second() + _time.sub_second_millis() / 1000.0) / 3600.0;
+            return dt.hour() + dt.minute() / 60.0 + ((double)dt.second() + _time.sub_second_millis() / 1000.0) / 3600.0;
         }
 
         // returns current local siderial time with precission of seconds
@@ -41,7 +41,7 @@ class Clock  {
         // returns current local siderial time with subsecond precission in decimal format
         static double get_decimal_LST() { 
             auto dt = _time.now() + _local_siderial_time_offset;
-            return dt.hour() + dt.minute() / 60.0 + ((float)dt.second() + _time.sub_second_millis() / 1000.0f) / 3600.0f;   
+            return dt.hour() + dt.minute() / 60.0 + ((double)dt.second() + _time.sub_second_millis() / 1000.0f) / 3600.0f;   
         }
 
     protected:
@@ -49,7 +49,7 @@ class Clock  {
         // compute local siderial time, precision of few arc seconds
         static TimeSpan compute_LST_offset() {
 
-            // Arduino cannot handle 64 bit floats so this
+            // Arduino cannot handle 64 bit doubles so this
             // https://aa.usno.navy.mil/faq/docs/GAST.php
             // algorithm must be a little bit tweaked to 
             // reach a precision of 4 decimal places ~ 1s

@@ -108,7 +108,7 @@ void Display::render_help(bool refresh, ControlSubState phase) {
     }
 }
 
-void Display::render_position(bool refresh, float ra, float dec) {
+void Display::render_position(bool refresh, double ra, double dec) {
 
     if (refresh) {
         _lcd.clear();
@@ -349,7 +349,7 @@ void Display::render_calibration_alignment(bool refresh, ControlSubState phase) 
     }
 }
 
-void Display::render_calibration_loaded(bool refresh, float pole_ra, float pole_dec, float ra_offset) {
+void Display::render_calibration_loaded(bool refresh, double pole_ra, double pole_dec, double ra_offset) {
     
     if (!refresh) return;
 
@@ -394,7 +394,7 @@ void Display::render_catalogue(bool refresh, ControlSubState phase, int object_n
 }
 
 void Display::render_catalogue_results(bool refresh, ControlSubState phase, int object_number, 
-                                       float magnitude, float size_a, float size_b, char type[5]) {
+                                       double magnitude, double size_a, double size_b, char type[5]) {
     if (!refresh) return;
 
     _lcd.clear();
@@ -411,7 +411,7 @@ void Display::render_catalogue_results(bool refresh, ControlSubState phase, int 
     if (magnitude != 0 && magnitude != 99) {
         _lcd.setCursor(DSP_COLS - 1 - 7, 0); 
         _lcd.print(F(" ("));
-        print_padded_float(magnitude, 4);
+        print_padded_double(magnitude, 4);
         _lcd.print(F("m)"));
     }
     
@@ -419,9 +419,9 @@ void Display::render_catalogue_results(bool refresh, ControlSubState phase, int 
     _lcd.print(type);
 
     _lcd.setCursor(DSP_COLS - 1 - 9, 1);
-    print_padded_float(size_a, 4);
+    print_padded_double(size_a, 4);
     _lcd.write((uint8_t)4);
-    print_padded_float(size_b, 4);
+    print_padded_double(size_b, 4);
     _lcd.write((uint8_t)0);
 }
 
@@ -527,14 +527,14 @@ void Display::print_padded(int number, int characters) {
     _lcd.print(str);
 }
 
-void Display::print_padded_float(float number, int characters) {
+void Display::print_padded_double(double number, int characters) {
 
     if (characters > 7) return;
 
     char str[8];
 
     int precision = characters - 1;
-    float tmp = number;
+    double tmp = number;
     if (tmp < 0) {
         --precision;
         tmp *= -1;
@@ -550,13 +550,13 @@ void Display::print_padded_float(float number, int characters) {
     _lcd.print(str);
 }
 
-void Display::dec_to_dms(float decimal, int dms[3]) {
+void Display::dec_to_dms(double decimal, int dms[3]) {
     dms[0] = (int)decimal;
     dms[1] = (int)((decimal - dms[0]) * 60.0f);
     dms[2] = (int)((decimal - dms[0] - dms[1] / 60.0f) * 3600.0f);
 }
 
-void Display::dec_to_his(float decimal, int his[3]) {
+void Display::dec_to_his(double decimal, int his[3]) {
     decimal /= 15.0f;
     dec_to_dms(decimal, his);
 }

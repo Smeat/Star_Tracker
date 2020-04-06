@@ -43,7 +43,7 @@ MountController::coord_t MountController::get_global_mount_orientation() {
 
 MountController::coord_t MountController::get_local_mount_orientation() {
 
-    float dec_revs_done, ra_revs_done;
+    double dec_revs_done, ra_revs_done;
     _motors.get_made_revolutions(dec_revs_done, ra_revs_done);
 
     _mount_orientation = revolutions_to_angle({dec_revs_done, ra_revs_done});
@@ -96,12 +96,12 @@ void MountController::all_star_alignment(coord_t kernel[], coord_t image[], uint
     }
 
     deg_t solution[3];
-    solution[0] = random(0, 360 * rnd_max) / (float)rnd_max;
-    solution[1] = random(-90 * rnd_max, 90 * rnd_max) / (float)rnd_max;
-    solution[2] = random(0, 360 * rnd_max) / (float)rnd_max;
+    solution[0] = random(0, 360 * rnd_max) / (double)rnd_max;
+    solution[1] = random(-90 * rnd_max, 90 * rnd_max) / (double)rnd_max;
+    solution[2] = random(0, 360 * rnd_max) / (double)rnd_max;
   
-    float best_fitness = 0;
-    float sigma = OPT_SIGMA;
+    double best_fitness = 0;
+    double sigma = OPT_SIGMA;
 
     for (int s = 0; s < OPT_GENERAITONS; ++s) {
 
@@ -116,16 +116,16 @@ void MountController::all_star_alignment(coord_t kernel[], coord_t image[], uint
 
             matrix_t A = make_transition_matrix({offspring[1], offspring[0]}, offspring[2]);
 
-            float objective = 0;
+            double objective = 0;
             for (uint8_t i = 0; i < points_num; ++i) {           
                 cartesian_t p = A * x[i];
-                float d_x = (p.x - y[i].x);
-                float d_y = (p.y - y[i].y); 
-                float d_z = (p.z - y[i].z); 
+                double d_x = (p.x - y[i].x);
+                double d_y = (p.y - y[i].y); 
+                double d_z = (p.z - y[i].z); 
                 objective += d_x * d_x + d_y * d_y + d_z * d_z;
             }
 
-            float fitness = 1.0f / (objective + 1.0f);
+            double fitness = 1.0f / (objective + 1.0f);
 
             if (best_fitness < fitness) {
                 best_fitness = fitness;
@@ -171,20 +171,20 @@ void MountController::move_absolute_J2000(deg_t angle_dec, deg_t angle_ra) {
 
     if (angle_dec < -90 || angle_dec > 90 || angle_ra < 0 || angle_ra >= 360) return;
 
-    float r = to_rad(angle_ra);
-    float c = to_rad(angle_dec);
+    double r = to_rad(angle_ra);
+    double c = to_rad(angle_dec);
     
     auto dt = Clock::get_time();
-    float t = (float)dt.secondstime() / 31557600.0f / 100.0f;
+    double t = (double)dt.secondstime() / 31557600.0f / 100.0f;
 
-    float M = to_rad(1.2812323f * t + 0.0003879f * t * t + 0.0000101f * t * t * t);
-    float N = to_rad(0.5567530f * t - 0.0001185f * t * t - 0.0000116f * t * t * t);
+    double M = to_rad(1.2812323f * t + 0.0003879f * t * t + 0.0000101f * t * t * t);
+    double N = to_rad(0.5567530f * t - 0.0001185f * t * t - 0.0000116f * t * t * t);
     
-    float r_m = r + 0.5f * (M + N * sinf(r) * tanf(c));
-    float d_m = c + 0.5f * N * cosf(r_m);
+    double r_m = r + 0.5f * (M + N * sinf(r) * tanf(c));
+    double d_m = c + 0.5f * N * cosf(r_m);
         
-    float r_c = r + M + N * sinf(r_m) * tanf(d_m);
-    float d_c = c + N * cosf(r_m);
+    double r_c = r + M + N * sinf(r_m) * tanf(d_m);
+    double d_c = c + N * cosf(r_m);
 
     r_c = fmod(r_c, 2 * PI);
     
@@ -201,7 +201,7 @@ void MountController::move_absolute(deg_t angle_dec, deg_t angle_ra) {
     coord_t o = get_local_mount_orientation();
     
     coord_t revs = angle_to_revolutions({target.dec - o.dec, target.ra  - o.ra});
-    float travel_time = _motors.estimate_fast_turn_time(revs.dec, revs.ra) / 1000.0f / 3600.0f;
+    double travel_time = _motors.estimate_fast_turn_time(revs.dec, revs.ra) / 1000.0f / 3600.0f;
 
     target = polar_to_polar({angle_dec, to_future_global_ra(angle_ra, travel_time)}, _transition);
     revs = angle_to_revolutions({target.dec - o.dec, target.ra  - o.ra});
@@ -274,7 +274,7 @@ void MountController::move_relative_global(deg_t angle_dec, deg_t angle_ra) {
     coord_t new_pos = polar_to_polar(curr_global, _transition);
     coord_t revs = angle_to_revolutions({new_pos.dec - curr_pos.dec, new_pos.ra - curr_pos.ra});
     
-    float travel_time = _motors.estimate_fast_turn_time(revs.dec, revs.ra) / 1000.0f * 15.0f / 3600.0f; 
+    double travel_time = _motors.estimate_fast_turn_time(revs.dec, revs.ra) / 1000.0f * 15.0f / 3600.0f; 
     curr_global.ra = fmod(curr_global.ra + travel_time, 360);
 
     new_pos = polar_to_polar(curr_global, _transition);
@@ -298,7 +298,7 @@ void MountController::set_tracking() {
     // of steppers speed and a clever correction (we are doing a conversion of a complex
     // sin/cos/sqrt function into a simple stair function) and it is hard.
 
-    float w = 15.0f;
+    double w = 15.0f;
     
     coord_t target = get_global_mount_orientation();
     coord_t speed = get_ra_speed_transform(w, 0.0f, target, _mount_pole, _mount_ra_offset);
@@ -319,13 +319,13 @@ void MountController::set_tracking() {
 
 void MountController::set_parking() {
 
-    float dec_revs_done, ra_revs_done;
+    double dec_revs_done, ra_revs_done;
     _motors.get_made_revolutions(dec_revs_done, ra_revs_done);
     
     _motors.fast_turn(-dec_revs_done, -ra_revs_done, false);
 }
 
-MountController::coord_t MountController::get_ra_speed_transform(deg_t ra_speed, float t, coord_t point, coord_t pole, deg_t ra_offset) {
+MountController::coord_t MountController::get_ra_speed_transform(deg_t ra_speed, double t, coord_t point, coord_t pole, deg_t ra_offset) {
 
     // Ugly and hardcoded derivative :-(
 
@@ -345,7 +345,7 @@ MountController::coord_t MountController::get_ra_speed_transform(deg_t ra_speed,
     double w_dec = sqrt(1.0 - z_transformed * z_transformed);
     if (w_dec <= 0) w_dec = 0.0f;
     else w_dec = z_derivative / w_dec; // arcsin derivative
-    float w_ra = sqrt(1.0 - w_dec);
+    double w_ra = sqrt(1.0 - w_dec);
 
     return coord_t { ra_speed * w_dec, ra_speed * w_ra };
 }
@@ -427,25 +427,26 @@ MountController::matrix_t MountController::get_ra_transition_inverse(deg_t ra) {
     };
 }
 
-float MountController::random_normal() {
+double MountController::random_normal() {
 
     static const long rnd_max = 1000000;
 
-    static float z1;
+    static double z1;
     static bool generate;
     generate = !generate;
 
     if (!generate) return z1;
 
-    float u1, u2;
+    double u1, u2;
     do {
-        u1 = random(0, rnd_max) / (float)rnd_max;
-        u2 = random(0, rnd_max) / (float)rnd_max;
+        u1 = random(0, rnd_max) / (double)rnd_max;
+        u2 = random(0, rnd_max) / (double)rnd_max;
     }
-    while (u1 <= FLT_MIN);
+	// TODO: do we need to change this, if the compiler only supports 32bit float?
+    while (u1 <= DBL_MIN);
 
-    float z0;
-    float s = sqrt(-2.0f * log(u1));
+    double z0;
+    double s = sqrt(-2.0f * log(u1));
     z0 = s * cos(2.0f * 3.14159265358f * u2);
     z1 = s * sin(2.0f * 3.14159265358f * u2);
 

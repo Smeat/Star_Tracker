@@ -131,7 +131,7 @@ class Control {
 
         // search in a catalogue file on the SD card for the specified object with number 'object'
         bool find_in_catalogue(ControlSubState catalogue, int object, MountController::coord_t& coords, 
-                               float& magnitude, float& size_a, float& size_b, char type[5]);
+                               double& magnitude, double& size_a, double& size_b, char type[5]);
 
         inline MountController::coord_t position_buffers_to_coords() {
             return MountController::coord_t {

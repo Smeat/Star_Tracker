@@ -70,9 +70,9 @@ void MotorController::stop() {
     _commands.clear();
 }
 
-float MotorController::estimate_fast_turn_time(float revs_dec, float revs_ra) {
+double MotorController::estimate_fast_turn_time(double revs_dec, double revs_ra) {
 
-    float sd, sr;
+    double sd, sr;
     revs_to_steps(sd, sr, revs_dec, revs_ra, false);
     
     auto time_dec = estimate_motor_fast_turn_time(sd, ACCEL_STEPS_DEC, ACCEL_DELAY_DEC, FAST_DELAY_START_DEC, FAST_DELAY_END_DEC);
@@ -81,16 +81,16 @@ float MotorController::estimate_fast_turn_time(float revs_dec, float revs_ra) {
     return max(time_dec, time_ra);
 } 
 
-float MotorController::estimate_motor_fast_turn_time(float steps, int accel_each, int accel_amount, int delay_start, int delay_end) {
+double MotorController::estimate_motor_fast_turn_time(double steps, int accel_each, int accel_amount, int delay_start, int delay_end) {
 
-    float time = 0;
+    double time = 0;
 
-    float total_steps = floor(steps);
-    float accel_steps = floor(steps);
+    double total_steps = floor(steps);
+    double accel_steps = floor(steps);
     int delay_curr = delay_start; 
 
     for (accel_steps -= accel_each; (accel_steps > steps / 2.0f) && (delay_curr > delay_end);) {
-        time += (float)delay_curr * accel_each;
+        time += (double)delay_curr * accel_each;
         delay_curr -= accel_amount;
         accel_steps -= accel_each;
     }
@@ -99,15 +99,15 @@ float MotorController::estimate_motor_fast_turn_time(float steps, int accel_each
     return (2 * time + (2 * accel_steps - total_steps) * delay_curr) / 1000.0f; 
 }
 
-void MotorController::fast_turn(float revs_dec, float revs_ra, boolean queueing) {
+void MotorController::fast_turn(double revs_dec, double revs_ra, boolean queueing) {
     turn_internal({revs_dec, revs_ra, FAST_DELAY_START_DEC, FAST_DELAY_START_RA, FAST_DELAY_END_DEC, FAST_DELAY_END_RA, false}, queueing);
 }
 
-void MotorController::slow_turn(float revs_dec, float revs_ra, float speed_dec, float speed_ra, boolean queueing) {
+void MotorController::slow_turn(double revs_dec, double revs_ra, double speed_dec, double speed_ra, boolean queueing) {
     // revolutions per second convert to delay in micros
     // there might be some overflows, but nobody cares ... (hopefully)
-    float delay_dec = 1000000.0 / (speed_dec * STEPS_PER_REV_DEC * MICROSTEPPING_MUL);
-    float delay_ra  = 1000000.0 / (speed_ra  * STEPS_PER_REV_RA  * MICROSTEPPING_MUL);
+    double delay_dec = 1000000.0 / (speed_dec * STEPS_PER_REV_DEC * MICROSTEPPING_MUL);
+    double delay_ra  = 1000000.0 / (speed_ra  * STEPS_PER_REV_RA  * MICROSTEPPING_MUL);
     turn_internal({revs_dec, revs_ra, delay_dec, delay_ra, delay_dec, delay_ra, true}, queueing);
 }
 
@@ -144,7 +144,7 @@ void MotorController::turn_internal(command_t cmd, bool queueing) {
     #endif
 #endif
 
-    float steps_dec, steps_ra;
+    double steps_dec, steps_ra;
     revs_to_steps(steps_dec, steps_ra, cmd.revs_dec, cmd.revs_ra, cmd.microstepping);
 
     uint32_t effective_steps_dec = steps_dec;
@@ -167,7 +167,7 @@ void MotorController::turn_internal(command_t cmd, bool queueing) {
 
     // compensate coarse resolution of the full-step movement
     if (!cmd.microstepping) {
-        float revs_dec, revs_ra;
+        double revs_dec, revs_ra;
         steps_to_revs(revs_dec, revs_ra, steps_dec - effective_steps_dec, steps_ra - effective_steps_ra, false);
         slow_turn(revs_dec, revs_ra, FAST_REVS_PER_SEC_DEC / MICROSTEPPING_MUL, FAST_REVS_PER_SEC_RA / MICROSTEPPING_MUL, true);
     }
@@ -198,7 +198,7 @@ void MotorController::step_micros(motor_data& data, long pulses, unsigned long m
 
     data.pulses_remaining = pulses;
 
-    float mcu_ticks_per_pulse = micros_between_steps / 2.0 / TMR_RESOLUTION;
+    double mcu_ticks_per_pulse = micros_between_steps / 2.0 / TMR_RESOLUTION;
 
     #ifdef DEBUG
         Serial.println(F("MCU ticks per one pulse:"));
@@ -208,7 +208,7 @@ void MotorController::step_micros(motor_data& data, long pulses, unsigned long m
     data.mcu_ticks_per_pulse = mcu_ticks_per_pulse;
 
     data.pulses_to_correct = 0;
-    float err = mcu_ticks_per_pulse - data.mcu_ticks_per_pulse;
+    double err = mcu_ticks_per_pulse - data.mcu_ticks_per_pulse;
     if (err == 0.0) data.pulses_to_correct = 0;
     else data.pulses_to_correct = 1.0 / err;
 
@@ -259,7 +259,7 @@ void MotorController::change_motor_speed(motor_data& data, unsigned int change_p
         }
  
         if (accel_desired || decel_desired) {
-            float new_steps_delay = data.current_steps_delay - (accel_desired ? 1 : -1) * amount;
+            double new_steps_delay = data.current_steps_delay - (accel_desired ? 1 : -1) * amount;
             step_micros(data, data.pulses_remaining,  new_steps_delay); 
             // this procedure take some time (like 100 us) so we may compensate missed intrrupts somehow
             data.ticks_passed += 2; 
