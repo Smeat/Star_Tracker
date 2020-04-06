@@ -3,6 +3,8 @@
 #include "display.h"
 #include "control.h"
 
+#include <Arduino.h>
+
 void Display::initialize(int brightness) {
 
     _lcd.begin(DSP_COLS, DSP_ROWS);
@@ -42,7 +44,9 @@ void Display::initialize(int brightness) {
 void Display::set_brightness(int brightness) {
     if (brightness > 255) brightness = 255;
     if (brightness < 0)   brightness = 0;
+#ifdef BOARD_ATMEGA
     analogWrite(DSP_ANODE_PIN, brightness);
+#endif
 }
 
 void Display::render_help(bool refresh, ControlSubState phase) {

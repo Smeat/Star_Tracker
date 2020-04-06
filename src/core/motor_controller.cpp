@@ -4,7 +4,7 @@
 #include "motor_controller.h"
 
 void MotorController::initialize() {
-    
+#ifdef BOARD_ATMEGA    
     uint8_t pin_mask = (1 << STEP_PIN_DEC) | (1 << DIR_PIN_DEC) | (1 << MS_PIN_DEC) |
                        (1 << STEP_PIN_RA)  | (1 << DIR_PIN_RA)  | (1 << MS_PIN_RA);
 
@@ -35,6 +35,7 @@ void MotorController::initialize() {
         Serial.print(F("  TCCRxB: ")); Serial.println(TCCR5B, BIN);
         Serial.print(F("  TIMSKx: ")); Serial.println(TIMSK5, BIN);
     #endif
+#endif
 
     _commands = queue<command_t>(8);
 
@@ -58,7 +59,9 @@ void MotorController::stop() {
         Serial.print(F("  RA:  ")); Serial.println(_ra.pulses_remaining);
     #endif
       
+#ifdef BOARD_ATMEGA
     MOTORS_PORT &= ~((1 << STEP_PIN_DEC) | (1 << STEP_PIN_RA)); // step pins to LOW
+#endif
 
     #ifdef DEBUG
         Serial.print(F("  PORT:   ")); Serial.println(MOTORS_PORT, BIN);
@@ -129,6 +132,7 @@ void MotorController::turn_internal(command_t cmd, bool queueing) {
 
     cli();
 
+#ifdef BOARD_ATMEGA
     // wait 1ms for pins to stabilize if needed
     if (change_pin(DIR_PIN_DEC, (cmd.revs_dec > 0 && DIRECTION_DEC) || (cmd.revs_dec < 0 && !DIRECTION_DEC)) | 
         change_pin(DIR_PIN_RA,  (cmd.revs_ra  > 0 && DIRECTION_RA)  || (cmd.revs_ra  < 0 && !DIRECTION_RA))  |
@@ -138,6 +142,7 @@ void MotorController::turn_internal(command_t cmd, bool queueing) {
     #ifdef DEBUG
         Serial.print(F(" ---> ")); Serial.println(MOTORS_PORT, BIN);
     #endif
+#endif
 
     float steps_dec, steps_ra;
     revs_to_steps(steps_dec, steps_ra, cmd.revs_dec, cmd.revs_ra, cmd.microstepping);
@@ -167,14 +172,18 @@ void MotorController::turn_internal(command_t cmd, bool queueing) {
         slow_turn(revs_dec, revs_ra, FAST_REVS_PER_SEC_DEC / MICROSTEPPING_MUL, FAST_REVS_PER_SEC_RA / MICROSTEPPING_MUL, true);
     }
 
+#ifdef BOARD_ATMEGA
     TCNT1 = 0; // reset Timer1 counter
+#endif
 
     sei();
 }
 
 bool MotorController::change_pin(byte pin, byte value) {
+#ifdef BOARD_ATMEGA
     if (((MOTORS_PORT >> pin) & 1) == value) return false;
     MOTORS_PORT ^= (-value ^ MOTORS_PORT) & (1 << pin);
+#endif
     return true;
 }
 
@@ -219,11 +228,13 @@ void MotorController::trigger() {
         turn_internal(_commands.pop(), false);
     }
 
+#ifdef BOARD_ATMEGA
     // DEC motor pulse should be done
     _dec_balance += motor_trigger(_dec, STEP_PIN_DEC, DIR_PIN_DEC, DIRECTION_DEC, MS_PIN_DEC);
 
     // RA motor pulse should be done
     _ra_balance += motor_trigger(_ra, STEP_PIN_RA, DIR_PIN_RA, DIRECTION_RA, MS_PIN_RA);
+#endif
 
     // these calls will take some time so we will probaly miss some next 
     // interrupts but we do not really care because we are changing speed
@@ -274,7 +285,11 @@ int MotorController::motor_trigger(motor_data& data, byte pin, byte dir, bool di
     ++data.pulses_to_accel;
     --data.pulses_remaining;
     data.ticks_passed = 0;
+#ifdef BOARD_ATMEGA
     MOTORS_PORT ^= (1 << pin);
-
     return (MOTORS_PORT & (1 << ms) ? 1 : MICROSTEPPING_MUL) * (((MOTORS_PORT >> dir) & 1) != dir_swap ? -1 : 1);
+#else
+	return 1;
+#endif
+
 }

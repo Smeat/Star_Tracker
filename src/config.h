@@ -42,6 +42,7 @@
 
 /* ==================================== STEPPER MOTORS ================================== */
 
+#ifdef BOARD_ATMEGA
 #define MOTORS_PORT             PORTK  // port of pins of stepper motors (serach for A. Mega pinout)
 #define MOTORS_DDR              DDRK   // DDR of pins of stepper motors
 #define STEP_PIN_DEC            PK2    // = A8 
@@ -50,6 +51,7 @@
 #define STEP_PIN_RA             PK5    // = A13
 #define DIR_PIN_RA              PK4    // = A12
 #define MS_PIN_RA               PK3    // = A11
+#endif
 
 #define MICROSTEPPING_MUL       8   // level of microstepping (depends of your wiring of A4988 pins)
 

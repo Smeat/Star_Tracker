@@ -10,14 +10,14 @@
 #include "core/rtc_ds3231.h"
 
 RtcDS3231 ds3231;
-Clock& clock = ds3231;
+Clock& rt_clock = ds3231;
 
 CanonEOS1000D eos;
 CameraController& camera = eos; 
 
 MountController mount(MotorController::instance());
 
-Control control(mount, camera, clock);
+Control control(mount, camera, rt_clock);
 
 void setup() {
 

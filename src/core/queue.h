@@ -3,10 +3,9 @@
  * By Steven de Salas
  */
 
-#ifndef QUEUE_H
-#define QUEUE_H
+#ifndef __QUEUE_H
+#define __QUEUE_H
 
-#include <Arduino.h>
 
 template<class T>
 class queue {

@@ -176,7 +176,9 @@ class Control {
 
         int _brightness_buffer = 128;
 
+#ifdef BOARD_ATMEGA
         SDClass* _sd;
+#endif
 
         Display _display;
         Keypad _keypad;

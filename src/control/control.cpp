@@ -11,8 +11,10 @@ void Control::initialize() {
     _mount.initialize();
     _display.initialize(_brightness_buffer);
 
+#ifdef BOARD_ATMEGA
     SD.begin(SD_CS);
     _sd = &SD;
+#endif
 
     _keypad.initialize();
     _camera.initialize();
@@ -479,6 +481,7 @@ int Control::get_pushed_digit() {
 
 bool Control::find_in_catalogue(ControlSubState catalogue, int object, MountController::coord_t& coords, 
                                 float& magnitude, float& size_a, float& size_b, char type[6]) {
+#ifdef BOARD_ATMEGA
     #ifdef DEBUG_CONTROL
         Serial.println(F("=============="));
         File root = SD.open("/");
@@ -574,6 +577,9 @@ bool Control::find_in_catalogue(ControlSubState catalogue, int object, MountCont
 
     file.close();
     return row_found;
+#else
+	return true;
+#endif
 }
 
 void Control::clear_position_buffers() {

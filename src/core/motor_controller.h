@@ -2,7 +2,7 @@
 #define MOTORCONTROLLER_H
 
 #include "../config.h"
-#include "queue.h"
+#include "./queue.h"
 
 #define TMR_RESOLUTION  64
 #define TIMER_TOP (F_CPU / (1000000.0 / TMR_RESOLUTION))
@@ -118,8 +118,10 @@ class MotorController {
         long _ra_balance;
 };
 
+#ifdef BOARD_ATMEGA
 #ifndef FROM_LIB
 ISR(TIMER5_COMPA_vect) { MotorController::instance().trigger(); }
+#endif
 #endif
 
 #endif
