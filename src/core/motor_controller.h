@@ -91,7 +91,7 @@ class MotorController {
         void step_micros(motor_data& data, long steps, unsigned long micros_between_steps);
 
         // performs acceleration or decceleration 'amount' if 'change_steps' passed
-        inline void change_motor_speed(motor_data& data, int change_steps, int amount);
+        inline void change_motor_speed(motor_data& data, unsigned int change_steps, int amount);
 
         // subrutine of the interrupt service rutine, returns microsteps which were done
         inline int motor_trigger(motor_data& data, byte pin, byte dir, bool dir_swap, byte ms);

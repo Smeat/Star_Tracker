@@ -182,6 +182,7 @@ void Control::goto_menu() {
         case S3: add_digit(_dec_buffer[0], pushed_digit, -89, 89); break;
         case S4: add_digit(_dec_buffer[1], pushed_digit, 0, 59); break;
         case S5: add_digit(_dec_buffer[2], pushed_digit, 0, 59); break;
+        default: break;
     }
 }
 
@@ -234,6 +235,7 @@ void Control::camera_menu() {
             _shooting_delay_buffer = 0;
             change_substate(S4);
         case S4: add_digit(_shooting_delay_buffer, pushed_digit, 1, 9999); break;
+        default: break;
     }
 }
 
@@ -384,6 +386,7 @@ void Control::calibration_menu() {
         case S5: add_digit(_dec_buffer[0], pushed_digit, -89, 89); break;
         case S6: add_digit(_dec_buffer[1], pushed_digit, 0, 59); break;
         case S7: add_digit(_dec_buffer[2], pushed_digit, 0, 59); break;
+        default: break;
     }
 }
 

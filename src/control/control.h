@@ -77,7 +77,7 @@ class Control {
         template <class T> 
           void save(T value, uint16_t adress) {
             byte* p = (byte*)(void*)&value;
-            for (int i = 0; i < sizeof(value); i++) EEPROM.write(adress++, *p++);
+            for (unsigned int i = 0; i < sizeof(value); i++) EEPROM.write(adress++, *p++);
         }
 
         template <class T>
@@ -90,7 +90,7 @@ class Control {
         template <class T>
         void load(T& target, uint16_t adress) {
             byte* p = (byte*)(void*)&target;
-            for (int i = 0; i < sizeof(target); i++) *p++ = EEPROM.read(adress++);
+            for (unsigned int i = 0; i < sizeof(target); i++) *p++ = EEPROM.read(adress++);
         }
 
         // display global position, facilitate manual controll and motors stopping
@@ -181,9 +181,9 @@ class Control {
         Display _display;
         Keypad _keypad;
         
-        Clock& _clock;
         MountController& _mount;
         CameraController& _camera;
+        Clock& _clock;
 
         uint8_t _calibration_buffer_size = 0;
         MountController::coord_t _kernel;

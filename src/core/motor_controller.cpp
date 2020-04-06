@@ -232,7 +232,7 @@ void MotorController::trigger() {
     change_motor_speed(_ra, ACCEL_STEPS_RA * 2, ACCEL_DELAY_RA);
 }
 
-void MotorController::change_motor_speed(motor_data& data, int change_pulses, int amount) {
+void MotorController::change_motor_speed(motor_data& data, unsigned int change_pulses, int amount) {
 
     bool accel_desired = false;
     bool decel_desired = false;
