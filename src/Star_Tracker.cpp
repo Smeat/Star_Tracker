@@ -1,13 +1,13 @@
-#include "src/config.h"
-#include "src/control/control.h"
+#include "config.h"
+#include "control/control.h"
 
-#include "src/core/motor_controller.h"
+#include "core/motor_controller.h"
 
-#include "src/core/camera_controller.h"
-#include "src/core/canon_eos1000d.h"
+#include "core/camera_controller.h"
+#include "core/canon_eos1000d.h"
 
-#include "src/core/clock.h"
-#include "src/core/rtc_ds3231.h"
+#include "core/clock.h"
+#include "core/rtc_ds3231.h"
 
 RtcDS3231 ds3231;
 Clock& clock = ds3231;
