@@ -23,7 +23,7 @@ class CanonEOS1000D : public CameraController {
 
         boolean update() override {
             
-            long from_last_snap = millis() - _last_invoked;
+            unsigned long from_last_snap = millis() - _last_invoked;
 
             if (from_last_snap < _last_duration) return true;
             if (from_last_snap < _last_duration + SNAP_DELAY_MS) {
