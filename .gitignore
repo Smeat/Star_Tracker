@@ -34,3 +34,6 @@
 # Others
 *.json
 *.bin
+
+.pio
+.clangd
