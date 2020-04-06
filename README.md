@@ -1,3 +1,10 @@
+# Goals of this fork
+ * Add support for esp32
+ * Use an sdmmc driver and be able to use a larger library
+   * SIMBAD library for Vmag <11 is about 16mb for the data and 30mb for the names
+ * Use a nokia 5110 LCD with red backlight LEDs
+ * Visual representation on the screen
+ * WiFi connection to KStars/Stellarium
 # Arduino Star Tracker
 
 This project aims an **automatic control for telescopes**, is **based on Arduino** and is **low-cost**!
