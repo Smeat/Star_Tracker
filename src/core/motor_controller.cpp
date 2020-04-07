@@ -61,11 +61,11 @@ void MotorController::stop() {
       
 #ifdef BOARD_ATMEGA
     MOTORS_PORT &= ~((1 << STEP_PIN_DEC) | (1 << STEP_PIN_RA)); // step pins to LOW
-#endif
 
     #ifdef DEBUG_OUTPUT
         Serial.print(F("  PORT:   ")); Serial.println(MOTORS_PORT, BIN);
     #endif
+#endif
 
     _commands.clear();
 }
@@ -124,11 +124,12 @@ void MotorController::turn_internal(command_t cmd, bool queueing) {
         Serial.print(F("  resv RA:        ")); Serial.println(cmd.revs_ra);
         Serial.print(F("  micro s. (t/f): ")); Serial.println(cmd.microstepping ? "enabled" : "disabled");
     #endif
-
+#ifdef BOARD_ATMEGA
     #ifdef DEBUG_OUTPUT
         Serial.println(F("Setting DIR and MS pins:"));
         Serial.print(F("  PORT:  ")); Serial.print(MOTORS_PORT, BIN);
     #endif
+#endif
 
     cli();
 
