@@ -43,7 +43,7 @@ class MotorController {
 
         // returns the number of revolutions relative to the starting position
         void get_made_revolutions(double& dec, double& ra) {
-            #ifdef DEBUG
+            #ifdef DEBUG_OUTPUT
                 Serial.println(F("Revolutions"));
                 Serial.print(F(" DEC: ")); Serial.println(_dec_balance); 
                 Serial.print(F("  RA: ")); Serial.println(_ra_balance); 

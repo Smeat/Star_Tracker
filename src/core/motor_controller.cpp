@@ -11,7 +11,7 @@ void MotorController::initialize() {
     MOTORS_DDR |= pin_mask;
     MOTORS_PORT &= ~pin_mask;
 
-    #ifdef DEBUG
+    #ifdef DEBUG_OUTPUT
         Serial.println(F("Stepper motors pins initialized:"));
         Serial.print(F("  Pinout: ")); Serial.println(pin_mask, BIN);
         Serial.print(F("  DDR:    ")); Serial.println(MOTORS_DDR, BIN);
@@ -29,7 +29,7 @@ void MotorController::initialize() {
     // Timer/Counter Interrupt Mask Register: set interrupt TIMERx_COMPA_vect
     TIMSK5 |= (1 << OCIE5A);
 
-    #ifdef DEBUG
+    #ifdef DEBUG_OUTPUT
         Serial.println(F("TimerX initialized."));
         Serial.print(F("  TCCRxA: ")); Serial.println(TCCR5A, BIN);
         Serial.print(F("  TCCRxB: ")); Serial.println(TCCR5B, BIN);
@@ -45,7 +45,7 @@ void MotorController::initialize() {
 
 void MotorController::stop() {
 
-    #ifdef DEBUG
+    #ifdef DEBUG_OUTPUT
         Serial.println(F("Stopping both motors:"));
     #endif
     
@@ -54,7 +54,7 @@ void MotorController::stop() {
     _ra.pulses_remaining = 0;
     sei();
 
-    #ifdef DEBUG
+    #ifdef DEBUG_OUTPUT
         Serial.print(F("  DEC: ")); Serial.println(_dec.pulses_remaining);
         Serial.print(F("  RA:  ")); Serial.println(_ra.pulses_remaining);
     #endif
@@ -63,7 +63,7 @@ void MotorController::stop() {
     MOTORS_PORT &= ~((1 << STEP_PIN_DEC) | (1 << STEP_PIN_RA)); // step pins to LOW
 #endif
 
-    #ifdef DEBUG
+    #ifdef DEBUG_OUTPUT
         Serial.print(F("  PORT:   ")); Serial.println(MOTORS_PORT, BIN);
     #endif
 
@@ -118,14 +118,14 @@ void MotorController::turn_internal(command_t cmd, bool queueing) {
         return;
     }
 
-    #ifdef DEBUG
+    #ifdef DEBUG_OUTPUT
         Serial.println(F("Initializing new movement."));
         Serial.print(F("  revs DEC:       ")); Serial.println(cmd.revs_dec);
         Serial.print(F("  resv RA:        ")); Serial.println(cmd.revs_ra);
         Serial.print(F("  micro s. (t/f): ")); Serial.println(cmd.microstepping ? "enabled" : "disabled");
     #endif
 
-    #ifdef DEBUG
+    #ifdef DEBUG_OUTPUT
         Serial.println(F("Setting DIR and MS pins:"));
         Serial.print(F("  PORT:  ")); Serial.print(MOTORS_PORT, BIN);
     #endif
@@ -139,7 +139,7 @@ void MotorController::turn_internal(command_t cmd, bool queueing) {
         change_pin(MS_PIN_DEC, cmd.microstepping) |
         change_pin(MS_PIN_RA,  cmd.microstepping)) delay(1);
 
-    #ifdef DEBUG
+    #ifdef DEBUG_OUTPUT
         Serial.print(F(" ---> ")); Serial.println(MOTORS_PORT, BIN);
     #endif
 #endif
@@ -191,7 +191,7 @@ void MotorController::step_micros(motor_data& data, long pulses, unsigned long m
 
     data.current_steps_delay = micros_between_steps;
 
-    #ifdef DEBUG
+    #ifdef DEBUG_OUTPUT
         Serial.println(F("Steps to be done:"));
         Serial.print(F("  ")); Serial.print(pulses / 2); Serial.print(F(", delay (us): ")); Serial.println(micros_between_steps);
     #endif
@@ -200,7 +200,7 @@ void MotorController::step_micros(motor_data& data, long pulses, unsigned long m
 
     double mcu_ticks_per_pulse = micros_between_steps / 2.0 / TMR_RESOLUTION;
 
-    #ifdef DEBUG
+    #ifdef DEBUG_OUTPUT
         Serial.println(F("MCU ticks per one pulse:"));
         Serial.print(F("  ")); Serial.println(mcu_ticks_per_pulse); 
     #endif
@@ -212,7 +212,7 @@ void MotorController::step_micros(motor_data& data, long pulses, unsigned long m
     if (err == 0.0) data.pulses_to_correct = 0;
     else data.pulses_to_correct = 1.0 / err;
 
-    #ifdef DEBUG
+    #ifdef DEBUG_OUTPUT
         Serial.println(F("Number of pulses after which is added an empty tick:"));
         Serial.print(F("  ")); Serial.println(data.pulses_to_correct); 
     #endif

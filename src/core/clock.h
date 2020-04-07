@@ -75,7 +75,7 @@ class Clock  {
             double GMST = 0.06570982441908 * (LD2 + LD4) + 24.0 * (RD2 + RD4) + 0.06570982441908 * (RD2 + RD4);
             GMST += 18.697374558 + LONGITUDE / 15.0;
 
-            #ifdef DEBUG_TIME
+            #ifdef DEBUG_OUTPUT_TIME
                 Serial.print(F("Local siderial time: ")); Serial.println(fmod(GMST, 24.0f), 5);
             #endif
 

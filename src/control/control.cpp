@@ -482,7 +482,7 @@ int Control::get_pushed_digit() {
 bool Control::find_in_catalogue(ControlSubState catalogue, int object, MountController::coord_t& coords, 
                                 double& magnitude, double& size_a, double& size_b, char type[6]) {
 #ifdef BOARD_ATMEGA
-    #ifdef DEBUG_CONTROL
+    #ifdef DEBUG_OUTPUT_CONTROL
         Serial.println(F("=============="));
         File root = SD.open("/");
         while (true) {
@@ -502,7 +502,7 @@ bool Control::find_in_catalogue(ControlSubState catalogue, int object, MountCont
     File file = _sd->open(path);
             
     if (!file) {
-        #ifdef DEBUG_CONTROL
+        #ifdef DEBUG_OUTPUT_CONTROL
             Serial.println("Catalogue file not found!");
         #endif
         return false;
@@ -567,7 +567,7 @@ bool Control::find_in_catalogue(ControlSubState catalogue, int object, MountCont
         }
     }
 
-    #ifdef DEBUG_CONTROL
+    #ifdef DEBUG_OUTPUT_CONTROL
         if (!row_found) {
             Serial.print(F("Object "));
             Serial.print(object);

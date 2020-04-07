@@ -14,7 +14,7 @@ class RtcDS3231 : public Clock {
         void obtain_time() override { 
 
             if (!_rtc.begin()) {
-                #ifdef DEBUG_TIME
+                #ifdef DEBUG_OUTPUT_TIME
                       Serial.println("Cannot find DS3231");
                 #endif
                 while(true);

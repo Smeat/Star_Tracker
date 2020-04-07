@@ -55,7 +55,7 @@ class Keypad {
           
             if (new_key == _used_key) return;
 
-            #ifdef DEBUG_KEYS
+            #ifdef DEBUG_OUTPUT_KEYS
                 Serial.print(F("Keypad change: "));
                 Serial.print(_used_key, HEX);
                 Serial.print(F("-->"));

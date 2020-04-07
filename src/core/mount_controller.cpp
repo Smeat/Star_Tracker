@@ -9,7 +9,7 @@ void MountController::initialize() {
 
     _motors.initialize();
 
-    #ifdef DEBUG_MOUNT
+    #ifdef DEBUG_OUTPUT_MOUNT
         Serial.println(F("Stepper motors initialized."));
     #endif
 
@@ -18,7 +18,7 @@ void MountController::initialize() {
     _mount_orientation = {0, 0};
     set_mount_pole(coord_t {DEFAULT_POLE_DEC, DEFAULT_POLE_RA}, DEFUALT_RA_OFFSET);
 
-    #ifdef DEBUG_MOUNT
+    #ifdef DEBUG_OUTPUT_MOUNT
         Serial.println(F("Mount initialized."));
     #endif
 }
@@ -32,7 +32,7 @@ MountController::coord_t MountController::get_global_mount_orientation() {
     global.ra = to_time_global_ra(global.ra);
     if (global.ra < 0) global.ra += 360;
 
-    #ifdef DEBUG_MOUNT
+    #ifdef DEBUG_OUTPUT_MOUNT
         Serial.println(F("Global orientation:"));
         Serial.print(F("  DEC:  ")); Serial.println(global.dec);
         Serial.print(F("  RA:   ")); Serial.println(global.ra);
@@ -54,7 +54,7 @@ MountController::coord_t MountController::get_local_mount_orientation() {
         Serial.println(F("Weird things happed! DEC out of bounds!"));
     }   
    
-    #ifdef DEBUG_MOUNT
+    #ifdef DEBUG_OUTPUT_MOUNT
         Serial.println(F("Local orientation:"));
         Serial.print(F("  DEC:  ")); Serial.println(_mount_orientation.dec, 7);
         Serial.print(F("  RA:   ")); Serial.println(_mount_orientation.ra, 7);
@@ -69,7 +69,7 @@ void MountController::all_star_alignment(coord_t kernel[], coord_t image[], uint
     // Simple evolutionary strategy for optimization, which is slow :(
     // TODO: better analytical solution
 
-    #ifdef DEBUG_MOUNT
+    #ifdef DEBUG_OUTPUT_MOUNT
         Serial.println(F("All start alignment:"));
         Serial.print(F("# input points: "));
         Serial.println(points_num);
@@ -139,7 +139,7 @@ void MountController::all_star_alignment(coord_t kernel[], coord_t image[], uint
         solution[1] = best_offspring[1];
         solution[2] = best_offspring[2];
         
-        #ifdef DEBUG_MOUNT
+        #ifdef DEBUG_OUTPUT_MOUNT
             if (s % 25 == 0) {
                 Serial.print(F("("));  Serial.print(s);
                 Serial.print(F(") | Fitness: "));    Serial.print(best_fitness, 12);
@@ -206,7 +206,7 @@ void MountController::move_absolute(deg_t angle_dec, deg_t angle_ra) {
     target = polar_to_polar({angle_dec, to_future_global_ra(angle_ra, travel_time)}, _transition);
     revs = angle_to_revolutions({target.dec - o.dec, target.ra  - o.ra});
 
-    #ifdef DEBUG_MOUNT
+    #ifdef DEBUG_OUTPUT_MOUNT
         Serial.println(F("Turning at high speed by:"));
         Serial.print(F("       DEC:  ")); Serial.println(target.dec - o.dec);
         Serial.print(F("       RA:   ")); Serial.println(target.ra  - o.ra);
@@ -236,7 +236,7 @@ void MountController::move_relative_local(deg_t angle_dec, deg_t angle_ra) {
 
     coord_t revs = angle_to_revolutions({angle_dec, angle_ra});
 
-    #ifdef DEBUG_MOUNT
+    #ifdef DEBUG_OUTPUT_MOUNT
         Serial.println(F("Turning at high speed by:"));
         Serial.print(F("  DEC:  ")); Serial.println(angle_dec);
         Serial.print(F("  RA:   ")); Serial.println(angle_ra);
@@ -280,7 +280,7 @@ void MountController::move_relative_global(deg_t angle_dec, deg_t angle_ra) {
     new_pos = polar_to_polar(curr_global, _transition);
     revs = angle_to_revolutions({new_pos.dec - curr_pos.dec, new_pos.ra - curr_pos.ra});
 
-    #ifdef DEBUG_MOUNT
+    #ifdef DEBUG_OUTPUT_MOUNT
         Serial.println(F("Turning at high speed by:"));
         Serial.print(F("  DEC:  ")); Serial.println(new_pos.dec - curr_pos.dec);
         Serial.print(F("  RA:   ")); Serial.println(new_pos.ra  - curr_pos.ra);
@@ -303,7 +303,7 @@ void MountController::set_tracking() {
     coord_t target = get_global_mount_orientation();
     coord_t speed = get_ra_speed_transform(w, 0.0f, target, _mount_pole, _mount_ra_offset);
 
-    #ifdef DEBUG_MOUNT
+    #ifdef DEBUG_OUTPUT_MOUNT
         Serial.println(F("Tracking:"));
         Serial.print(F("  target DEC: ")); Serial.println(target.dec);
         Serial.print(F("  target RA:  ")); Serial.println(target.ra);
