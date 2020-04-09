@@ -19,8 +19,8 @@ class Display {
     
     public:
 
-        Display() : _lcd(LiquidCrystal(DSP_REGISTER_SEL_PIN, DSP_ENABLE_PIN, DSP_DATA_PIN7, 
-                                       DSP_DATA_PIN6, DSP_DATA_PIN5, DSP_DATA_PIN4)) {}
+        Display() : _lcd(LiquidCrystal(DSP_REGISTER_SEL_PIN, DSP_ENABLE_PIN, DSP_DATA_PIN4, 
+                                       DSP_DATA_PIN5, DSP_DATA_PIN6, DSP_DATA_PIN7)) {}
 
         // initialize LCD and display intro screen
         void initialize(int brightness);
