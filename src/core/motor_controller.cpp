@@ -271,7 +271,7 @@ void MotorController::change_motor_speed(motor_data& data, unsigned int change_p
     }
 }
 
-int MotorController::motor_trigger(motor_data& data, byte pin, byte dir, bool dir_swap, byte ms) {
+int MotorController::motor_trigger(motor_data& data, byte step_pin, byte dir_pin, bool dir_swap, byte ms) {
 
     if (data.pulses_remaining == 0) return 0;
     if (!data.correction) ++data.ticks_passed;
@@ -288,10 +288,10 @@ int MotorController::motor_trigger(motor_data& data, byte pin, byte dir, bool di
     --data.pulses_remaining;
     data.ticks_passed = 0;
 #ifdef BOARD_ATMEGA
-    MOTORS_PORT ^= (1 << pin);
-    return (MOTORS_PORT & (1 << ms) ? 1 : MICROSTEPPING_MUL) * (((MOTORS_PORT >> dir) & 1) != dir_swap ? -1 : 1);
+    MOTORS_PORT ^= (1 << step_pin);
+    return (MOTORS_PORT & (1 << ms) ? 1 : MICROSTEPPING_MUL) * (((MOTORS_PORT >> dir_pin) & 1) != dir_swap ? -1 : 1);
 #else
-	return 1;
+	return MICROSTEPPING_MUL * (digitalRead(dir_pin) != dir_swap ? -1 : 1);
 #endif
 
 }
