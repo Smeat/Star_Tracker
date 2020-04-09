@@ -10,84 +10,48 @@
 template<class T>
 class queue {
   private:
-    int _front, _back, _count;
-    T *_data;
-    int _maxitems;
+	  QueueHandle_t _queue;
   public:
     queue(int maxitems = 256) { 
-      _front = 0;
-      _back = 0;
-      _count = 0;
-      _maxitems = maxitems;
-      _data = new T[maxitems + 1];   
+		_queue = xQueueCreate(maxitems, sizeof(T));
     }
-    ~queue() {
-      delete[] _data;  
-    }
-    inline int count();
-    inline int front();
-    inline int back();
     void push(const T &item);
-    T peek();
+	int count();
     T pop();
+	T peek();
     void clear();
 };
 
 template<class T>
-inline int queue<T>::count() 
-{
-  return _count;
-}
-
-template<class T>
-inline int queue<T>::front() 
-{
-  return _front;
-}
-
-template<class T>
-inline int queue<T>::back() 
-{
-  return _back;
-}
-
-template<class T>
 void queue<T>::push(const T &item)
 {
-  if(_count < _maxitems) { // Drops out when full
-    _data[_back++]=item;
-    ++_count;
-    // Check wrap around
-    if (_back > _maxitems)
-      _back -= (_maxitems + 1);
-  }
+	xQueueSend(_queue, &item, portMAX_DELAY);
+}
+
+template<class T>
+int queue<T>::count()
+{
+	return uxQueueMessagesWaiting(_queue);
 }
 
 template<class T>
 T queue<T>::pop() {
-  if(_count <= 0) return T(); // Returns empty
-  else {
-    T result = _data[_front];
-    _front++;
-    --_count;
-    // Check wrap around
-    if (_front > _maxitems) 
-      _front -= (_maxitems + 1);
-    return result; 
-  }
+	T obj;
+	xQueueReceive(_queue, &obj, portMAX_DELAY);
+	return obj;
 }
 
 template<class T>
 T queue<T>::peek() {
-  if(_count <= 0) return T(); // Returns empty
-  else return _data[_front];
+	T obj;
+	xQueuePeek(_queue, &obj, portMAX_DELAY);
+	return obj;
 }
 
 template<class T>
 void queue<T>::clear() 
 {
-  _front = _back;
-  _count = 0;
+	xQueueReset(_queue);
 }
 
 #endif
