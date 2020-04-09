@@ -2,6 +2,7 @@
 
 #include "../core/clock.h"
 #include "../net/TCP.h"
+#include "stdint.h"
 
 #include <cstdlib>
 #include <stdio.h>
@@ -11,9 +12,13 @@ void lx200_init(MountController* mc) {
 	mount_controller = mc;
 }
 
-void lx200_handle_message(uint8_t* msg, uint32_t len) {
+static void lx200_handle_single_message(uint8_t* msg, uint32_t len) {
 	char return_msg[128];
-	if(msg[0] != ':') return; // ignore invalid messages
+	return_msg[0] = 0;
+	if(msg[0] != ':' && msg[len-1] != '#'){
+		log_d("Ignoring invalid msg: %s", msg);
+		return; // ignore invalid messages
+	}
 	switch(msg[1]) {
 		case 'G':
 			switch(msg[2]) {
@@ -61,12 +66,24 @@ void lx200_handle_message(uint8_t* msg, uint32_t len) {
 			switch(msg[2]) {
 				case 'r':
 					{
-						char* pEnd;
-						int hours = strtol((char*)msg + 3, &pEnd, 10);
-						int minutes = strtol(pEnd, &pEnd, 10);
-						int seconds = strtol(pEnd, &pEnd, 10);
+						int hours = (msg[4] - '0') * 10 + (msg[5] - '0');
+						int minutes = (msg[7] - '0') * 10 + (msg[8] - '0');
+						int seconds = (msg[10] - '0') * 10 + (msg[11] - '0');
 						double ra = hours * 15 + minutes/4.0 + seconds/240.0;
-						mount_controller->move_absolute_J2000(mount_controller->get_global_mount_orientation().dec, ra);
+						mount_controller->set_target_ra(ra);
+						log_i("Moving ra to %f. %02d:%02d:%02d. msg was %s", ra, hours, minutes, seconds, msg);
+						snprintf(return_msg, 128, "%d#", 1);
+					}
+					break;
+				case 'd':
+					{
+						int sign = (msg[4] == '+') ? 1 : -1;
+						int hours = (msg[5] - '0') * 10 + (msg[6] - '0');
+						int minutes = (msg[8] - '0') * 10 + (msg[9] - '0');
+						int seconds = (msg[11] - '0') * 10 + (msg[12] - '0');
+						double dec = sign * hours * 15 + minutes/4.0 + seconds/240.0;
+						mount_controller->set_target_dec(dec);
+						log_i("Moving dec to %f. %02d:%02d:%02d. msg was %s", dec, hours, minutes, seconds, msg);
 						snprintf(return_msg, 128, "%d#", 1);
 					}
 					break;
@@ -75,8 +92,21 @@ void lx200_handle_message(uint8_t* msg, uint32_t len) {
 			break;
 	}
 
-	Serial.printf("Got msg %s\n", msg);
-	Serial.printf("Sending msg %s\n", return_msg);
+	log_i("Got msg %s\n", msg);
+	log_i("Sending msg %s\n", return_msg);
 	tcp_send_packet((uint8_t*)return_msg, strnlen(return_msg, 128));
+	heap_caps_check_integrity_all(true);
+}
 
+void lx200_handle_message(uint8_t* buf, uint32_t size) {
+	for(uint32_t i = 0; i < size; ++i) {
+		if(buf[i] == '#') {
+			i += 1; // include #
+			lx200_handle_single_message(buf, i);
+			// We move the buf pointer and adjust the size, so we can begin from i=0 again
+			buf = buf + i;
+			size -= i;
+			i = 0;
+		}
+	}
 }

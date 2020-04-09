@@ -194,7 +194,6 @@ void MountController::move_absolute_J2000(deg_t angle_dec, deg_t angle_ra) {
 void MountController::move_absolute(deg_t angle_dec, deg_t angle_ra) {
 
     if (angle_dec < -90 || angle_dec > 90 || angle_ra < 0 || angle_ra >= 360) return;
-
     _motors.stop(); 
     
     coord_t target = polar_to_polar({angle_dec, to_time_global_ra(angle_ra)}, _transition);
@@ -451,4 +450,18 @@ double MountController::random_normal() {
     z1 = s * sin(2.0 * 3.14159265358 * u2);
 
     return z0;
+}
+
+void MountController::set_target_ra(double ra) {
+	this->_current_target.ra = ra;
+	heap_caps_check_integrity_all(true);
+	this->move_absolute_J2000(this->_current_target.dec, this->_current_target.ra);
+	this->set_tracking();
+}
+
+void MountController::set_target_dec(double dec) {
+	this->_current_target.dec = dec;
+	heap_caps_check_integrity_all(true);
+	this->move_absolute_J2000(this->_current_target.dec, this->_current_target.ra);
+	this->set_tracking();
 }

@@ -1,6 +1,7 @@
 #define FROM_LIB
 
 #include <Arduino.h>
+#include "esp32-hal-timer.h"
 #include "motor_controller.h"
 
 void MotorController::initialize() {
@@ -41,10 +42,12 @@ void MotorController::initialize() {
 
     _dec_balance = 0;
     _ra_balance = 0;
+	_motor_lock = xSemaphoreCreateMutex();
 }
 
 void MotorController::stop() {
 
+	xSemaphoreTake(_motor_lock, portMAX_DELAY);
     #ifdef DEBUG_OUTPUT
         Serial.println(F("Stopping both motors:"));
     #endif
@@ -68,6 +71,7 @@ void MotorController::stop() {
 #endif
 
     _commands.clear();
+	xSemaphoreGive(_motor_lock);
 }
 
 double MotorController::estimate_fast_turn_time(double revs_dec, double revs_ra) {
@@ -165,6 +169,7 @@ void MotorController::turn_internal(command_t cmd, bool queueing) {
 
     step_micros(&_dec, effective_steps_dec * 2, _dec.start_steps_delay);
     step_micros(&_ra,  effective_steps_ra  * 2, _ra.start_steps_delay);
+	xSemaphoreGive(_motor_lock);
 
     // compensate coarse resolution of the full-step movement
     if (!cmd.microstepping) {
@@ -224,25 +229,25 @@ void MotorController::step_micros(motor_data* data, int pulses, unsigned long mi
 }
 
 void MotorController::trigger() {
+	xSemaphoreTake(_motor_lock, portMAX_DELAY);
 
 	// All current commands are finished, so take the next from the queue
     if (_ra.pulses_remaining == 0 && _dec.pulses_remaining == 0 && _commands.count() > 0) {
         turn_internal(_commands.pop(), false);
     }
 
-#ifdef BOARD_ATMEGA
     // DEC motor pulse should be done
     _dec_balance += motor_trigger(_dec, STEP_PIN_DEC, DIR_PIN_DEC, DIRECTION_DEC, MS_PIN_DEC);
 
     // RA motor pulse should be done
     _ra_balance += motor_trigger(_ra, STEP_PIN_RA, DIR_PIN_RA, DIRECTION_RA, MS_PIN_RA);
-#endif
 
     // these calls will take some time so we will probaly miss some next 
     // interrupts but we do not really care because we are changing speed
     // and this does not happen during tracking so everything should be ok
     change_motor_speed(_dec, ACCEL_STEPS_DEC * 2, ACCEL_DELAY_DEC);
     change_motor_speed(_ra, ACCEL_STEPS_RA * 2, ACCEL_DELAY_RA);
+	xSemaphoreGive(_motor_lock);
 }
 
 void MotorController::change_motor_speed(motor_data& data, unsigned int change_pulses, int amount) {

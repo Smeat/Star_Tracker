@@ -59,6 +59,9 @@ class MountController {
     // compensate improperly calibrated mount), however this SPEED MIGHT BE IRRELEVANT ONCE THE TRACKING
     // IS RUNNING FOR A LONG TIME AND/OR THE MOUNT IS VERY POORLY CALIBRATED (i.e. its pole is at 45 DEC)
     void set_tracking();
+	
+	void set_target_ra(double ra);
+	void set_target_dec(double dec);
 
     // moves the mount to 0, 0 in local coordinates
     void set_parking();
@@ -181,6 +184,10 @@ class MountController {
     double random_normal();
 
     boolean _is_tracking;
+
+	// sets the current target. allows to easily set ra and dec separately
+	// in J2000
+	coord_t _current_target;
 
     // DEC and RA of the real mount pole, BUT! RA is 0 for points
     // on the meridian which is opposite to the local one 

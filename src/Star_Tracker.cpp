@@ -14,6 +14,11 @@
 #include "net/TCP.h"
 #include "net/wireless.h"
 
+#include <stdint.h>
+#include <soc/timer_group_struct.h>
+#include <soc/timer_group_reg.h>
+#include <esp_task_wdt.h>
+
 RtcDS3231 ds3231;
 Clock& rt_clock = ds3231;
 
@@ -23,6 +28,31 @@ CameraController& camera = eos;
 MountController mount(MotorController::instance());
 
 Control control(mount, camera, rt_clock);
+
+void watchdog_feed() {
+  TIMERG0.wdt_wprotect = TIMG_WDT_WKEY_VALUE;
+  TIMERG0.wdt_feed = 1;
+  TIMERG0.wdt_wprotect = 0;
+}
+
+void tcp_task(void* param) {
+	while(42) {
+  		control.update();
+  		tcp_update(lx200_handle_message);
+		//uint8_t buf[] = ":Sr 10:10:10#";
+//		lx200_handle_message(buf, strlen((char*)buf));
+		mount.set_target_dec(5);
+//		mount.set_target_ra(5);
+		vTaskDelay(10/portTICK_PERIOD_MS);
+	}
+}
+
+void motor_task(void* param) {
+	while(42) {
+		MotorController::instance().trigger();
+		vTaskDelay(1/portTICK_PERIOD_MS);
+	}
+}
 
 void setup() {
 
@@ -38,11 +68,11 @@ void setup() {
   control.initialize();
   delay(100);
 
+  xTaskCreate(&tcp_task, "tcp_task", 18096, NULL, 5, NULL);
+  //xTaskCreate(&motor_task, "motor_task", 18096, NULL, 5, NULL);
+
 }
 
 void loop() {
-
-  control.update();
-  delay(10);
-
+//	watchdog_feed();
 }

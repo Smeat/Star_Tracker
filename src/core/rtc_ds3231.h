@@ -17,7 +17,6 @@ class RtcDS3231 : public Clock {
                 #ifdef DEBUG_OUTPUT_TIME
                       Serial.println("Cannot find DS3231");
                 #endif
-                while(true);
             }
             
             set_time(_rtc.now());

@@ -57,17 +57,17 @@ class MotorController {
 
         // structure holding state of motors and movement while executing a command
         struct motor_data {
-            volatile uint32_t steps_total = 0;  // steps to be done during this particular movement
-            volatile uint32_t pulses_remaining = 0;  // pulses to be done until the end of this movement
-            volatile uint32_t pulses_until_correction = 0;  // pulses to be done until inserting an extra pulse
-            volatile uint32_t pulses_to_correct = 0;  // number of pulses after which is done a correction
-            volatile uint32_t mcu_ticks_per_pulse = 0;  // number of ticks after which is done a pulse
-            volatile uint32_t pulses_to_accel = 0;  // number of pulses after which is done an ac/deceleration
-            volatile uint32_t start_steps_delay = 0;  // delay between steps at the start of fast movement
-            volatile uint32_t target_steps_delay = 0;  // minimal delay between steps during fast movement
-            volatile uint32_t current_steps_delay = 0;  // current delay between steps
-            volatile uint32_t ticks_passed = 0;  // counter of ticks for triggering pulse (see mcu_ticks_per_pulse)
-            volatile bool correction = false;  // flag to state whether do or do not do correction 
+             uint32_t steps_total = 0;  // steps to be done during this particular movement
+             uint32_t pulses_remaining = 0;  // pulses to be done until the end of this movement
+             uint32_t pulses_until_correction = 0;  // pulses to be done until inserting an extra pulse
+             uint32_t pulses_to_correct = 0;  // number of pulses after which is done a correction
+             uint32_t mcu_ticks_per_pulse = 0;  // number of ticks after which is done a pulse
+             uint32_t pulses_to_accel = 0;  // number of pulses after which is done an ac/deceleration
+             uint32_t start_steps_delay = 0;  // delay between steps at the start of fast movement
+             uint32_t target_steps_delay = 0;  // minimal delay between steps during fast movement
+             uint32_t current_steps_delay = 0;  // current delay between steps
+             uint32_t ticks_passed = 0;  // counter of ticks for triggering pulse (see mcu_ticks_per_pulse)
+             bool correction = false;  // flag to state whether do or do not do correction 
         };
 
         // structre holding a command for motors
@@ -116,6 +116,7 @@ class MotorController {
 
         long _dec_balance;
         long _ra_balance;
+		SemaphoreHandle_t _motor_lock = NULL;
 };
 
 #ifdef BOARD_ATMEGA

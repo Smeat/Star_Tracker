@@ -9,17 +9,21 @@ void Control::initialize() {
     load(_brightness_buffer, EEPROM_ADDR + 4, 0, 255, 128);
 
     _mount.initialize();
+	log_i("Mount init done");
     _display.initialize(_brightness_buffer);
+	log_i("display init done");
 
 #ifdef BOARD_ATMEGA
     SD.begin(SD_CS);
     _sd = &SD;
 #endif
-
     _keypad.initialize();
+	log_i("keypad init done");
     _camera.initialize();
+	log_i("camera init done");
 
     _clock.obtain_time();
+	log_i("clock init done");
 
     delay(100);
 

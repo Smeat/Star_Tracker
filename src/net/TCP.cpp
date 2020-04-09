@@ -43,6 +43,7 @@ void tcp_init() {
 
 void IRAM_ATTR tcp_send_packet(uint8_t* buf, uint32_t size) {
 	if(tcp_server < 0) return;
+	log_i("Sending packet with size %d", size);
 	if (buf != NULL && size != 0) {
 		for(int i = 0; i < MAX_TCP_CLIENTS; ++i) {
 			if(tcpClients[i] >= 0) {
@@ -89,6 +90,7 @@ void IRAM_ATTR tcp_update(void (*callback)(uint8_t* buf, uint32_t size)) {
 					tcpClients[i] = -1;
 				}
 			} else { // got new data
+				log_i("Got tcp msg with len %d", len);
 				packetBuffer[len] = 0;
 				callback(packetBuffer, len);
 			}

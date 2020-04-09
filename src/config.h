@@ -51,6 +51,13 @@
 #define STEP_PIN_RA             PK5    // = A13
 #define DIR_PIN_RA              PK4    // = A12
 #define MS_PIN_RA               PK3    // = A11
+#else
+#define STEP_PIN_DEC            2    // = A8 
+#define DIR_PIN_DEC             1    // = A9
+#define MS_PIN_DEC              0    // = A10
+#define STEP_PIN_RA             5    // = A13
+#define DIR_PIN_RA              4    // = A12
+#define MS_PIN_RA               3    // = A11
 #endif
 
 #define MICROSTEPPING_MUL       8   // level of microstepping (depends of your wiring of A4988 pins)
@@ -97,6 +104,6 @@
  #define DEBUG_OUTPUT_MOUNT
  #define DEBUG_OUTPUT_TIME
  #define DEBUG_OUTPUT_CONTROL
- #define DEBUG_OUTPUT_KEYS
+// #define DEBUG_OUTPUT_KEYS
 
 #endif
