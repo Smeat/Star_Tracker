@@ -5,6 +5,7 @@
  * Use a nokia 5110 LCD with red backlight LEDs
  * Visual representation on the screen
  * WiFi connection to KStars/Stellarium
+ * ESP32 support only for now (8bit support may return once the esp32 is running)
 # Arduino Star Tracker
 
 This project aims an **automatic control for telescopes**, is **based on Arduino** and is **low-cost**!
