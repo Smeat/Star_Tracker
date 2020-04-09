@@ -448,9 +448,9 @@ void Control::manual_control(ControlSubState nothing, ControlSubState degrees, C
 
     if (_mount.is_moving() || _substate == nothing) return;
 
-    double conversion_ratio = 1.0f;
-    if (_substate == minutes) conversion_ratio = 60.0f/5.0f;
-    else if (_substate == seconds) conversion_ratio = 3600.0f/5.0f;
+    double conversion_ratio = 1.0;
+    if (_substate == minutes) conversion_ratio = 60.0/5.0;
+    else if (_substate == seconds) conversion_ratio = 3600.0/5.0;
 
     if (_keypad.pressed(C_ARROW_UP)) 		 _mount.move_relative_local(5 / conversion_ratio, 0);
     else if (_keypad.pressed(C_ARROW_LEFT))  _mount.move_relative_local(0, -5 / conversion_ratio);

@@ -89,14 +89,14 @@ double MotorController::estimate_motor_fast_turn_time(double steps, int accel_ea
     double accel_steps = floor(steps);
     int delay_curr = delay_start; 
 
-    for (accel_steps -= accel_each; (accel_steps > steps / 2.0f) && (delay_curr > delay_end);) {
+    for (accel_steps -= accel_each; (accel_steps > steps / 2.0) && (delay_curr > delay_end);) {
         time += (double)delay_curr * accel_each;
         delay_curr -= accel_amount;
         accel_steps -= accel_each;
     }
     accel_steps += accel_each;
 
-    return (2 * time + (2 * accel_steps - total_steps) * delay_curr) / 1000.0f; 
+    return (2 * time + (2 * accel_steps - total_steps) * delay_curr) / 1000.0; 
 }
 
 void MotorController::fast_turn(double revs_dec, double revs_ra, boolean queueing) {

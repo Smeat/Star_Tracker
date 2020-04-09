@@ -49,8 +49,8 @@ MountController::coord_t MountController::get_local_mount_orientation() {
     _mount_orientation = revolutions_to_angle({dec_revs_done, ra_revs_done});
 
     // DEC and RA must be in bounds and this should never happen! exception would be wonderful 
-    if (_mount_orientation.dec > 90.0f || _mount_orientation.dec < -90.0f ||
-        _mount_orientation.ra > 360.0f || _mount_orientation.ra < 0.0f){
+    if (_mount_orientation.dec > 90.0 || _mount_orientation.dec < -90.0 ||
+        _mount_orientation.ra > 360.0 || _mount_orientation.ra < 0.0){
         Serial.println(F("Weird things happed! DEC out of bounds!"));
     }   
    
@@ -125,7 +125,7 @@ void MountController::all_star_alignment(coord_t kernel[], coord_t image[], uint
                 objective += d_x * d_x + d_y * d_y + d_z * d_z;
             }
 
-            double fitness = 1.0f / (objective + 1.0f);
+            double fitness = 1.0 / (objective + 1.0);
 
             if (best_fitness < fitness) {
                 best_fitness = fitness;
@@ -175,13 +175,13 @@ void MountController::move_absolute_J2000(deg_t angle_dec, deg_t angle_ra) {
     double c = to_rad(angle_dec);
     
     auto dt = Clock::get_time();
-    double t = (double)dt.secondstime() / 31557600.0f / 100.0f;
+    double t = (double)dt.secondstime() / 31557600.0 / 100.0;
 
-    double M = to_rad(1.2812323f * t + 0.0003879f * t * t + 0.0000101f * t * t * t);
-    double N = to_rad(0.5567530f * t - 0.0001185f * t * t - 0.0000116f * t * t * t);
+    double M = to_rad(1.2812323 * t + 0.0003879 * t * t + 0.0000101 * t * t * t);
+    double N = to_rad(0.5567530 * t - 0.0001185 * t * t - 0.0000116 * t * t * t);
     
-    double r_m = r + 0.5f * (M + N * sinf(r) * tanf(c));
-    double d_m = c + 0.5f * N * cosf(r_m);
+    double r_m = r + 0.5 * (M + N * sinf(r) * tanf(c));
+    double d_m = c + 0.5 * N * cosf(r_m);
         
     double r_c = r + M + N * sinf(r_m) * tanf(d_m);
     double d_c = c + N * cosf(r_m);
@@ -201,7 +201,7 @@ void MountController::move_absolute(deg_t angle_dec, deg_t angle_ra) {
     coord_t o = get_local_mount_orientation();
     
     coord_t revs = angle_to_revolutions({target.dec - o.dec, target.ra  - o.ra});
-    double travel_time = _motors.estimate_fast_turn_time(revs.dec, revs.ra) / 1000.0f / 3600.0f;
+    double travel_time = _motors.estimate_fast_turn_time(revs.dec, revs.ra) / 1000.0 / 3600.0;
 
     target = polar_to_polar({angle_dec, to_future_global_ra(angle_ra, travel_time)}, _transition);
     revs = angle_to_revolutions({target.dec - o.dec, target.ra  - o.ra});
@@ -274,7 +274,7 @@ void MountController::move_relative_global(deg_t angle_dec, deg_t angle_ra) {
     coord_t new_pos = polar_to_polar(curr_global, _transition);
     coord_t revs = angle_to_revolutions({new_pos.dec - curr_pos.dec, new_pos.ra - curr_pos.ra});
     
-    double travel_time = _motors.estimate_fast_turn_time(revs.dec, revs.ra) / 1000.0f * 15.0f / 3600.0f; 
+    double travel_time = _motors.estimate_fast_turn_time(revs.dec, revs.ra) / 1000.0 * 15.0 / 3600.0; 
     curr_global.ra = fmod(curr_global.ra + travel_time, 360);
 
     new_pos = polar_to_polar(curr_global, _transition);
@@ -298,21 +298,21 @@ void MountController::set_tracking() {
     // of steppers speed and a clever correction (we are doing a conversion of a complex
     // sin/cos/sqrt function into a simple stair function) and it is hard.
 
-    double w = 15.0f;
+    double w = 15.0;
     
     coord_t target = get_global_mount_orientation();
-    coord_t speed = get_ra_speed_transform(w, 0.0f, target, _mount_pole, _mount_ra_offset);
+    coord_t speed = get_ra_speed_transform(w, 0.0, target, _mount_pole, _mount_ra_offset);
 
     #ifdef DEBUG_OUTPUT_MOUNT
         Serial.println(F("Tracking:"));
         Serial.print(F("  target DEC: ")); Serial.println(target.dec);
         Serial.print(F("  target RA:  ")); Serial.println(target.ra);
-        Serial.print(F("  speed DEC (dps): ")); Serial.println(speed.dec / 3600.0f, 7);  // 0.0 
-        Serial.print(F("  speed RA (dps):  ")); Serial.println(speed.ra  / 3600.0f, 7);  // 0.0041667
+        Serial.print(F("  speed DEC (dps): ")); Serial.println(speed.dec / 3600.0, 7);  // 0.0 
+        Serial.print(F("  speed RA (dps):  ")); Serial.println(speed.ra  / 3600.0, 7);  // 0.0041667
     #endif
 
     speed = angle_to_revolutions(speed);
-    _motors.slow_turn(speed.dec, speed.ra, speed.dec / 3600.0f, speed.ra / 3600.0f, true);
+    _motors.slow_turn(speed.dec, speed.ra, speed.dec / 3600.0, speed.ra / 3600.0, true);
     
     _is_tracking = true;
 }
@@ -343,7 +343,7 @@ MountController::coord_t MountController::get_ra_speed_transform(deg_t ra_speed,
     double z_derivative  = coscos * sin(real_ra);
 
     double w_dec = sqrt(1.0 - z_transformed * z_transformed);
-    if (w_dec <= 0) w_dec = 0.0f;
+    if (w_dec <= 0) w_dec = 0.0;
     else w_dec = z_derivative / w_dec; // arcsin derivative
     double w_ra = sqrt(1.0 - w_dec);
 
@@ -446,9 +446,9 @@ double MountController::random_normal() {
     while (u1 <= DBL_MIN);
 
     double z0;
-    double s = sqrt(-2.0f * log(u1));
-    z0 = s * cos(2.0f * 3.14159265358f * u2);
-    z1 = s * sin(2.0f * 3.14159265358f * u2);
+    double s = sqrt(-2.0 * log(u1));
+    z0 = s * cos(2.0 * 3.14159265358 * u2);
+    z1 = s * sin(2.0 * 3.14159265358 * u2);
 
     return z0;
 }

@@ -541,7 +541,7 @@ void Display::print_padded_double(double number, int characters) {
     }
     while (tmp >= 1) {
         precision--;
-        tmp /= 10.0f;
+        tmp /= 10.0;
     }
 
     dtostrf(number, characters, precision, str);
@@ -552,12 +552,12 @@ void Display::print_padded_double(double number, int characters) {
 
 void Display::dec_to_dms(double decimal, int dms[3]) {
     dms[0] = (int)decimal;
-    dms[1] = (int)((decimal - dms[0]) * 60.0f);
-    dms[2] = (int)((decimal - dms[0] - dms[1] / 60.0f) * 3600.0f);
+    dms[1] = (int)((decimal - dms[0]) * 60.0);
+    dms[2] = (int)((decimal - dms[0] - dms[1] / 60.0) * 3600.0);
 }
 
 void Display::dec_to_his(double decimal, int his[3]) {
-    decimal /= 15.0f;
+    decimal /= 15.0;
     dec_to_dms(decimal, his);
 }
 

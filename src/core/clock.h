@@ -41,7 +41,7 @@ class Clock  {
         // returns current local siderial time with subsecond precission in decimal format
         static double get_decimal_LST() { 
             auto dt = _time.now() + _local_siderial_time_offset;
-            return dt.hour() + dt.minute() / 60.0 + ((double)dt.second() + _time.sub_second_millis() / 1000.0f) / 3600.0f;   
+            return dt.hour() + dt.minute() / 60.0 + ((double)dt.second() + _time.sub_second_millis() / 1000.0) / 3600.0;   
         }
 
     protected:
@@ -60,7 +60,7 @@ class Clock  {
             double dt_d = get_decimal_time();
 
             double D1 = (367L * dt.year()) - 730531.5;
-            double D2 = D1 - (long)((7.0 * (dt.year() + (long)((dt.month() + 9.0) / 12.0f))) / 4.0);
+            double D2 = D1 - (long)((7.0 * (dt.year() + (long)((dt.month() + 9.0) / 12.0))) / 4.0);
             
             double D3 = (long)(30.55555555 * dt.month()) + dt.day();
             double D4 = D3 + dt_d / 24.0;
@@ -76,11 +76,11 @@ class Clock  {
             GMST += 18.697374558 + LONGITUDE / 15.0;
 
             #ifdef DEBUG_OUTPUT_TIME
-                Serial.print(F("Local siderial time: ")); Serial.println(fmod(GMST, 24.0f), 5);
+                Serial.print(F("Local siderial time: ")); Serial.println(fmod(GMST, 24.0), 5);
             #endif
 
-            double GMST_diff = fmod(GMST, 24.0f) - dt_d;
-            if (GMST_diff < 0) GMST_diff += 24.0f;
+            double GMST_diff = fmod(GMST, 24.0) - dt_d;
+            if (GMST_diff < 0) GMST_diff += 24.0;
 
             return TimeSpan(GMST_diff * 3600.0);
         }

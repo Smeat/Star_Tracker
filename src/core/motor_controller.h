@@ -48,8 +48,8 @@ class MotorController {
                 Serial.print(F(" DEC: ")); Serial.println(_dec_balance); 
                 Serial.print(F("  RA: ")); Serial.println(_ra_balance); 
             #endif
-            dec = (double) _dec_balance / 2.0f / STEPS_PER_REV_DEC / MICROSTEPPING_MUL;
-            ra = (double) _ra_balance / 2.0f / STEPS_PER_REV_RA / MICROSTEPPING_MUL;
+            dec = (double) _dec_balance / 2.0 / STEPS_PER_REV_DEC / MICROSTEPPING_MUL;
+            ra = (double) _ra_balance / 2.0 / STEPS_PER_REV_RA / MICROSTEPPING_MUL;
         }
 
     private:
