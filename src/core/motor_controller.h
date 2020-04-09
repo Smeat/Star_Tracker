@@ -88,7 +88,7 @@ class MotorController {
         void turn_internal(command_t cmd, bool queueing);
 
         // set job to move specified number of steps with delays between them
-        void step_micros(motor_data& data, long steps, unsigned long micros_between_steps);
+        void step_micros(motor_data* data, int steps, unsigned long micros_between_steps);
 
         // performs acceleration or decceleration 'amount' if 'change_steps' passed
         inline void change_motor_speed(motor_data& data, unsigned int change_steps, int amount);
@@ -99,14 +99,14 @@ class MotorController {
         // returns true if 'value' is defferent from current value (1 or 0) and changes pin appropriately 
         inline bool change_pin(byte pin, byte value);
 
-        inline void revs_to_steps(double &steps_dec, double &steps_ra, double revs_dec, double revs_ra, bool microstepping) {
-            steps_dec = abs(revs_dec) * STEPS_PER_REV_DEC * (microstepping ? MICROSTEPPING_MUL : 1);
-            steps_ra  = abs(revs_ra)  * STEPS_PER_REV_RA  * (microstepping ? MICROSTEPPING_MUL : 1);
+        inline void revs_to_steps(double* steps_dec, double* steps_ra, double revs_dec, double revs_ra, bool microstepping) {
+            *steps_dec = abs(revs_dec) * STEPS_PER_REV_DEC * (microstepping ? MICROSTEPPING_MUL : 1);
+            *steps_ra  = abs(revs_ra)  * STEPS_PER_REV_RA  * (microstepping ? MICROSTEPPING_MUL : 1);
         }
 
-        inline void steps_to_revs(double &revs_dec, double &revs_ra, double steps_dec, double steps_ra, bool microstepping) {
-            revs_dec = steps_dec / STEPS_PER_REV_DEC / (microstepping ? MICROSTEPPING_MUL : 1);
-            revs_ra  = steps_ra  / STEPS_PER_REV_RA  / (microstepping ? MICROSTEPPING_MUL : 1);
+        inline void steps_to_revs(double* revs_dec, double* revs_ra, double steps_dec, double steps_ra, bool microstepping) {
+            *revs_dec = steps_dec / STEPS_PER_REV_DEC / (microstepping ? MICROSTEPPING_MUL : 1);
+            *revs_ra  = steps_ra  / STEPS_PER_REV_RA  / (microstepping ? MICROSTEPPING_MUL : 1);
         }
 
         // some motor state variables
