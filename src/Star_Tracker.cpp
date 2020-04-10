@@ -7,6 +7,7 @@
 #include "control/LX200.h"
 
 #include "core/motor_controller.h"
+#include "core/mount_controller.h"
 
 #include "core/camera_controller.h"
 #include "core/canon_eos1000d.h"
@@ -74,6 +75,20 @@ void IRAM_ATTR motor_isr() {
 	}
 }
 
+void info_task(void*) {
+	while(42) {
+//		mount.get_global_mount_orientation();
+
+		log_v("Moving to 90,0");
+		mount.move_absolute(90, 0);
+		log_v("done!");
+		vTaskDelay(10000/portTICK_PERIOD_MS);
+		log_v("Moving to 0,0");
+		mount.move_absolute(0, 0);
+		vTaskDelay(10000/portTICK_PERIOD_MS);
+	}
+}
+
 void setup() {
 
   Serial.begin(SERIAL_BAUD_RATE);
@@ -89,14 +104,13 @@ void setup() {
   delay(100);
 
   xTaskCreate(&tcp_task, "tcp_task", 18096, NULL, 5, NULL);
-  //xTaskCreate(&motor_task, "motor_task", 18096, NULL, 5, NULL);
-  xTaskCreate(&motor_task, "motor_task", 18096, NULL, 5, &motor_task_handle);
+  //xTaskCreate(&info_task, "info_task", 8096, NULL, 5, NULL);
+  xTaskCreate(&motor_task, "motor_task", 8096, NULL, 5, &motor_task_handle);
 
   motor_timer = timerBegin(0, 80, true);
   timerAttachInterrupt(motor_timer, &motor_isr, true);
   timerAlarmWrite(motor_timer, 64, true);
   timerAlarmEnable(motor_timer);
-  //mount.move_absolute(0, 90);
 
 }
 
