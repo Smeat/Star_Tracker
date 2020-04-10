@@ -41,7 +41,7 @@ void tcp_task(void* param) {
   		tcp_update(lx200_handle_message);
 		//uint8_t buf[] = ":Sr 10:10:10#";
 //		lx200_handle_message(buf, strlen((char*)buf));
-		mount.set_target_dec(5);
+//		mount.set_target_dec(5);
 //		mount.set_target_ra(5);
 		vTaskDelay(10/portTICK_PERIOD_MS);
 	}
@@ -69,7 +69,7 @@ void setup() {
   delay(100);
 
   xTaskCreate(&tcp_task, "tcp_task", 18096, NULL, 5, NULL);
-  //xTaskCreate(&motor_task, "motor_task", 18096, NULL, 5, NULL);
+  xTaskCreate(&motor_task, "motor_task", 18096, NULL, 5, NULL);
 
 }
 
