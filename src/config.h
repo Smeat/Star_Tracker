@@ -13,10 +13,10 @@
 
 /* ======================================== MOUNT ======================================= */
 
-#define REDUCTION_RATIO_DEC     8              // reduction ratio of DEC motor gearbox (1:8)
-#define REDUCTION_RATIO_RA      8              // reduction ratio of RA motor gearbox (1:8)
-#define DEG_PER_MOUNT_REV_DEC   5.37313432836  // reduction ratio of DEC mount gears (1:67)
-#define DEG_PER_MOUNT_REV_RA    2.68656716418  // reduction ratio of DEC mount gears (1:134)
+#define REDUCTION_RATIO_DEC     1              // reduction ratio of DEC motor gearbox (1:8)
+#define REDUCTION_RATIO_RA      1              // reduction ratio of RA motor gearbox (1:8)
+#define DEG_PER_MOUNT_REV_DEC   360 // reduction ratio of DEC mount gears (1:67)
+#define DEG_PER_MOUNT_REV_RA    360  // reduction ratio of DEC mount gears (1:134)
 
 #define DIRECTION_DEC           0    // 1 or 0 to swap DEC movement direction
 #define DIRECTION_RA            0    // 1 or 0 to swap RA movement direction
@@ -52,18 +52,18 @@
 #define DIR_PIN_RA              PK4    // = A12
 #define MS_PIN_RA               PK3    // = A11
 #else
-#define STEP_PIN_DEC            2    // = A8 
-#define DIR_PIN_DEC             1    // = A9
-#define MS_PIN_DEC              0    // = A10
-#define STEP_PIN_RA             5    // = A13
-#define DIR_PIN_RA              4    // = A12
-#define MS_PIN_RA               3    // = A11
+#define STEP_PIN_DEC            21    // = A8 
+#define DIR_PIN_DEC             12    // = A9
+#define MS_PIN_DEC              13    // = A10
+#define STEP_PIN_RA             14    // = A13
+#define DIR_PIN_RA              26    // = A12
+#define MS_PIN_RA               22    // = A11
 #endif
 
-#define MICROSTEPPING_MUL       8   // level of microstepping (depends of your wiring of A4988 pins)
+#define MICROSTEPPING_MUL       1   // level of microstepping (depends of your wiring of A4988 pins)
 
-#define STEPS_PER_REV_DEC       200     // number of steps per DEC motor revolution (200 for NEMA 17)
-#define STEPS_PER_REV_RA        200     // number of steps per RA motor revolution (200 for NEMA 17)
+#define STEPS_PER_REV_DEC       360     // number of steps per DEC motor revolution (200 for NEMA 17)
+#define STEPS_PER_REV_RA        360     // number of steps per RA motor revolution (200 for NEMA 17)
 
 #define ACCEL_STEPS_DEC         256     // every ACCEL_STEPS_DEC steps is the delay in/decreased by
 #define ACCEL_DELAY_DEC         64      // ACCEL_DELAY_DEC (should be even, multiple of 2)
