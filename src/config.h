@@ -56,7 +56,7 @@
 #define DIR_PIN_DEC             12    // = A9
 #define MS_PIN_DEC              13    // = A10
 #define STEP_PIN_RA             14    // = A13
-#define DIR_PIN_RA              26    // = A12
+#define DIR_PIN_RA              25    // = A12
 #define MS_PIN_RA               22    // = A11
 #endif
 

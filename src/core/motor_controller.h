@@ -101,8 +101,8 @@ class MotorController {
         inline bool change_pin(byte pin, byte value);
 
         inline void revs_to_steps(int* steps_dec, int* steps_ra, double revs_dec, double revs_ra, bool microstepping) {
-            *steps_dec = revs_dec * STEPS_PER_REV_DEC * (microstepping ? MICROSTEPPING_MUL : 1);
-            *steps_ra  = revs_ra  * STEPS_PER_REV_RA  * (microstepping ? MICROSTEPPING_MUL : 1);
+            *steps_dec = abs(revs_dec) * STEPS_PER_REV_DEC * (microstepping ? MICROSTEPPING_MUL : 1);
+            *steps_ra  = abs(revs_ra)  * STEPS_PER_REV_RA  * (microstepping ? MICROSTEPPING_MUL : 1);
         }
 
         inline void steps_to_revs(double* revs_dec, double* revs_ra, double steps_dec, double steps_ra, bool microstepping) {

@@ -130,18 +130,17 @@ void MotorController::slow_turn(double revs_dec, double revs_ra, double speed_de
 
 void MotorController::turn_internal(command_t cmd, bool queueing) {
     if (queueing && !is_ready()) {
+		log_i("queing cmd");
         _commands.push(cmd);
+		log_i("done");
         return;
     }
 	xSemaphoreTake(_motor_lock, portMAX_DELAY);
     int steps_dec, steps_ra;
     revs_to_steps(&steps_dec, &steps_ra, cmd.revs_dec, cmd.revs_ra, cmd.microstepping);
 	log_d("turning by DEC %f RA %f revs, %d %d steps %d %d balance",cmd.revs_dec, cmd.revs_ra, steps_dec, steps_ra, this->_dec_balance, this->_ra_balance);
-	this->_ra_balance += steps_ra*2;
-	this->_dec_balance += steps_dec*2;
 	log_d("total steps ra %d dec %d", _dec_balance, _ra_balance);
-	xSemaphoreGive(_motor_lock);
-	return;
+	
 #ifdef BOARD_ATMEGA
     #ifdef DEBUG_OUTPUT
         Serial.println(F("Setting DIR and MS pins:"));
@@ -149,13 +148,13 @@ void MotorController::turn_internal(command_t cmd, bool queueing) {
     #endif
 #endif
 
-    cli();
+    //cli();
 
     // wait 1ms for pins to stabilize if needed
-    volatile uint8_t changed = (change_pin(DIR_PIN_DEC, (cmd.revs_dec > 0 && DIRECTION_DEC) || (cmd.revs_dec < 0 && !DIRECTION_DEC)) | 
-        change_pin(DIR_PIN_RA,  (cmd.revs_ra  > 0 && DIRECTION_RA)  || (cmd.revs_ra  < 0 && !DIRECTION_RA))  |
-        change_pin(MS_PIN_DEC, cmd.microstepping) |
-        change_pin(MS_PIN_RA,  cmd.microstepping));
+    volatile uint8_t changed = change_pin(DIR_PIN_DEC, (cmd.revs_dec > 0 && DIRECTION_DEC) || (cmd.revs_dec < 0 && !DIRECTION_DEC));
+    changed |= change_pin(DIR_PIN_RA,  (cmd.revs_ra  > 0 && DIRECTION_RA)  || (cmd.revs_ra  < 0 && !DIRECTION_RA));
+    changed |= change_pin(MS_PIN_DEC, cmd.microstepping);
+	changed |= change_pin(MS_PIN_RA,  cmd.microstepping);
 	if(changed) delay(1);
 
 #ifdef BOARD_ATMEGA
@@ -182,15 +181,16 @@ void MotorController::turn_internal(command_t cmd, bool queueing) {
 
     step_micros(&_dec, effective_steps_dec * 2, _dec.start_steps_delay);
     step_micros(&_ra,  effective_steps_ra  * 2, _ra.start_steps_delay);
-	xSemaphoreGive(_motor_lock);
         log_d("Initializing new movement.");
         log_d("  revs DEC:       %f", cmd.revs_dec);
         log_d("  resv RA:        %f", cmd.revs_ra);
 		log_d("  steps DEC: %d RA: %d", effective_steps_dec, effective_steps_ra);
         log_d("  micro s. (t/f): %s", cmd.microstepping ? "enabled" : "disabled");
+		log_d("Direction dec %d ra %d", digitalRead(DIR_PIN_DEC), digitalRead(DIR_PIN_RA));
+	xSemaphoreGive(_motor_lock);
 
     // compensate coarse resolution of the full-step movement
-    if (false && !cmd.microstepping) {
+    if (!cmd.microstepping) {
         double revs_dec, revs_ra;
         steps_to_revs(&revs_dec, &revs_ra, steps_dec - effective_steps_dec, steps_ra - effective_steps_ra, false);
         slow_turn(revs_dec, revs_ra, FAST_REVS_PER_SEC_DEC / MICROSTEPPING_MUL, FAST_REVS_PER_SEC_RA / MICROSTEPPING_MUL, true);
@@ -200,7 +200,7 @@ void MotorController::turn_internal(command_t cmd, bool queueing) {
     TCNT1 = 0; // reset Timer1 counter
 #endif
 
-    sei();
+    //sei();
 }
 
 bool MotorController::change_pin(byte pin, byte value) {
@@ -210,8 +210,7 @@ bool MotorController::change_pin(byte pin, byte value) {
 #else
 	uint8_t state = digitalRead(pin);
 	if(state == value) return false;
-	digitalWrite(pin, !state);
-	log_i("Changed direction for pin %d val %d", pin, value);
+	digitalWrite(pin, value);
 #endif
     return true;
 }
@@ -252,12 +251,13 @@ void MotorController::step_micros(motor_data* data, int pulses, unsigned long mi
 }
 
 void MotorController::trigger() {
-	return;
 	xSemaphoreTake(_motor_lock, portMAX_DELAY);
-
 	// All current commands are finished, so take the next from the queue
     if (_ra.pulses_remaining == 0 && _dec.pulses_remaining == 0 && _commands.count() > 0) {
+		// TODO: never call turn_internal directly elsewhere. just use the queue
+		xSemaphoreGive(_motor_lock);
         turn_internal(_commands.pop(), false);
+		xSemaphoreTake(_motor_lock, portMAX_DELAY);
     }
 
     // DEC motor pulse should be done
@@ -269,8 +269,8 @@ void MotorController::trigger() {
     // these calls will take some time so we will probaly miss some next 
     // interrupts but we do not really care because we are changing speed
     // and this does not happen during tracking so everything should be ok
-    //change_motor_speed(_dec, ACCEL_STEPS_DEC * 2, ACCEL_DELAY_DEC);
-    //change_motor_speed(_ra, ACCEL_STEPS_RA * 2, ACCEL_DELAY_RA);
+    change_motor_speed(_dec, ACCEL_STEPS_DEC * 2, ACCEL_DELAY_DEC);
+    change_motor_speed(_ra, ACCEL_STEPS_RA * 2, ACCEL_DELAY_RA);
 	xSemaphoreGive(_motor_lock);
 }
 
