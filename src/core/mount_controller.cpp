@@ -455,13 +455,13 @@ double MountController::random_normal() {
 void MountController::set_target_ra(double ra) {
 	this->_current_target.ra = ra;
 	heap_caps_check_integrity_all(true);
-	this->move_absolute_J2000(this->_current_target.dec, this->_current_target.ra);
+	this->move_absolute(this->_current_target.dec, this->_current_target.ra);
 	this->set_tracking();
 }
 
 void MountController::set_target_dec(double dec) {
 	this->_current_target.dec = dec;
 	heap_caps_check_integrity_all(true);
-	this->move_absolute_J2000(this->_current_target.dec, this->_current_target.ra);
+	this->move_absolute(this->_current_target.dec, this->_current_target.ra);
 	this->set_tracking();
 }

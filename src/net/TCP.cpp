@@ -43,7 +43,7 @@ void tcp_init() {
 
 void IRAM_ATTR tcp_send_packet(uint8_t* buf, uint32_t size) {
 	if(tcp_server < 0) return;
-	log_i("Sending packet with size %d", size);
+	log_i("Sending packet with size %d msg: %s", size, buf);
 	if (buf != NULL && size != 0) {
 		for(int i = 0; i < MAX_TCP_CLIENTS; ++i) {
 			if(tcpClients[i] >= 0) {

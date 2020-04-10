@@ -100,10 +100,10 @@
 
 /* ======================================== DEBUG_OUTPUT ======================================= */
 
- #define DEBUG_OUTPUT
- #define DEBUG_OUTPUT_MOUNT
- #define DEBUG_OUTPUT_TIME
- #define DEBUG_OUTPUT_CONTROL
+// #define DEBUG_OUTPUT
+// #define DEBUG_OUTPUT_MOUNT
+// #define DEBUG_OUTPUT_TIME
+// #define DEBUG_OUTPUT_CONTROL
 // #define DEBUG_OUTPUT_KEYS
 
 #endif

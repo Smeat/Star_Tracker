@@ -20,14 +20,14 @@
 #include <esp_task_wdt.h>
 
 RtcDS3231 ds3231;
-Clock& rt_clock = ds3231;
+Clock& my_clock = ds3231;
 
 CanonEOS1000D eos;
 CameraController& camera = eos; 
 
 MountController mount(MotorController::instance());
 
-Control control(mount, camera, rt_clock);
+Control control(mount, camera, my_clock);
 
 void watchdog_feed() {
   TIMERG0.wdt_wprotect = TIMG_WDT_WKEY_VALUE;
@@ -61,7 +61,7 @@ void setup() {
   Serial.println("Starting tcp, lx200 and wifi");
   log_e("TEST!");
   ESP_LOGI("HI", "ESP test!");
-  lx200_init(&mount);
+  lx200_init(&mount, &my_clock);
   initWifiAP();
   tcp_init();
   delay(10);

@@ -8,12 +8,17 @@
 #include <stdio.h>
 #include <string.h>
 
-void lx200_init(MountController* mc) {
+static MountController* mount_controller = NULL;
+static Clock* rt_clock = NULL;
+
+void lx200_init(MountController* mc, Clock* c) {
 	mount_controller = mc;
+	rt_clock = c;
 }
 
 static void lx200_handle_single_message(uint8_t* msg, uint32_t len) {
 	char return_msg[128];
+	bool no_return = false;
 	return_msg[0] = 0;
 	if(len == 1 && msg[0] == 0x06) {
 		return_msg[0] = 'A';
@@ -43,9 +48,11 @@ static void lx200_handle_single_message(uint8_t* msg, uint32_t len) {
 				case 'c':
 					snprintf(return_msg, 128, "%d#", 24);
 					break;
-				// FIXME: DEC and RA seem to be switched in KStars
+				// FIXME: DEC and RA seem to be switched in KStars/libindi
+				// seems to be fixed now. no clue what I did. _WORST_ protocol I've ever used T_T
 				// telescope RA in HH:MM:SS
-				case 'D':
+				case 'R':
+				case 'r':
 					{
 						//double ra = mount_controller->get_global_mount_orientation().ra;
 						double ra = mount_controller->get_target().ra;
@@ -56,7 +63,8 @@ static void lx200_handle_single_message(uint8_t* msg, uint32_t len) {
 					}
 					break;
 				// telescope dec in HH:MM:SS
-				case 'R':
+				case 'D':
+				case 'd':
 					{
 						//double ra = mount_controller->get_global_mount_orientation().dec;
 						double ra = mount_controller->get_target().dec;
@@ -66,9 +74,37 @@ static void lx200_handle_single_message(uint8_t* msg, uint32_t len) {
 						snprintf(return_msg, 128, "+%02d*%02d'%02d#", raH, raM, raS);
 					}
 					break;
+				// site names
+				case 'M':
+				case 'N':
+				case 'O':
+				case 'P':
+					snprintf(return_msg, 128, "%s#", "none");
+					break;
+				// TODO: latitude
+				case 't':
+					{
+						double latitude = LATITUDE;
+						int deg = latitude;
+						int min = (latitude - deg) * 60;
+						snprintf(return_msg, 128, "%+02d*%02d#", deg, min);
+						break;
+					}
+				case 'g':
+					{
+						double latitude = LONGITUDE;
+						int deg = latitude;
+						int min = (latitude - deg) * 60;
+						snprintf(return_msg, 128, "%+03d*%02d#", deg, min);
+						break;
+					}
+					break;
+
+					
 				default:
 					break;
 			}
+		break; // end case 'G'
 		case 'S':
 			switch(msg[2]) {
 				case 'r':
@@ -79,7 +115,7 @@ static void lx200_handle_single_message(uint8_t* msg, uint32_t len) {
 						double ra = hours * 15 + minutes/4.0 + seconds/240.0;
 						mount_controller->set_target_ra(ra);
 						log_i("Moving ra to %f. %02d:%02d:%02d. msg was %s", ra, hours, minutes, seconds, msg);
-						snprintf(return_msg, 128, "%d#", 1);
+						snprintf(return_msg, 128, "%d", 1);
 					}
 					break;
 				case 'd':
@@ -91,8 +127,59 @@ static void lx200_handle_single_message(uint8_t* msg, uint32_t len) {
 						double dec = sign * hours * 15 + minutes/4.0 + seconds/240.0;
 						mount_controller->set_target_dec(dec);
 						log_i("Moving dec to %f. %02d:%02d:%02d. msg was %s", dec, hours, minutes, seconds, msg);
-						snprintf(return_msg, 128, "%d#", 1);
+						snprintf(return_msg, 128, "%d", 1);
 					}
+					break;
+				// set date in stupid format MM/DD/YY
+				case 'C':
+					{
+						int month = (msg[4] - '0' * 10) + msg[5] - '0';
+						int day = (msg[7] - '0' * 10) + msg[8] - '0';
+						int year = 2000 + (msg[10] - '0' * 10) + msg[11] - '0';
+						DateTime old_date = rt_clock->get_time();
+						DateTime new_date(year, month, day, old_date.hour(), old_date.minute(), old_date.second());
+						rt_clock->sync(new_date);
+						log_i("New date is %d-%d-%d", year, month, day);
+						// TODO: always valid for now
+						// the string is part of the specification.....
+						snprintf(return_msg, 128, "1Updating  Planetary Data#                                           #");
+					}
+				break;
+			}
+		break; // end case 'S'
+		case 'M':
+			switch(msg[2]) {
+				case 'S':
+					snprintf(return_msg, 128, "%d", 0);
+					break;
+				default:
+					break;
+			}
+		// TODO: implement distance bars
+		case 'D':
+			snprintf(return_msg, 128, "#");
+			break;
+		// stop command
+		case 'Q':
+			switch(msg[2]) {
+				case '#':
+				// TODO: implement directional stop
+				case 'e':
+				case 'n':
+				case 's':
+				case 'w':
+					mount_controller->stop_all();
+					no_return = true;
+					break;
+			}
+		// use Autostar responses for now
+		case 'L':
+			switch(msg[2]) {
+				case 'f':
+					snprintf(return_msg, 128, "0 - Objects found#");
+					break;
+				case 'I':
+					snprintf(return_msg, 128, "M31#");
 					break;
 			}
 		default:
@@ -102,6 +189,7 @@ static void lx200_handle_single_message(uint8_t* msg, uint32_t len) {
 lx200_end:
 	log_i("Got msg %s\n", msg);
 	log_i("Sending msg %s\n", return_msg);
+	if(strnlen(return_msg, 128) == 0 && !no_return) log_w("##### UNKNONW MESSAGE %s ######", msg);
 	tcp_send_packet((uint8_t*)return_msg, strnlen(return_msg, 128));
 	heap_caps_check_integrity_all(true);
 }
