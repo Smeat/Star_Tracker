@@ -1,3 +1,6 @@
+#include "esp_attr.h"
+#include "freertos/portmacro.h"
+#include "freertos/projdefs.h"
 #define LOG_LOCAL_LEVEL ESP_LOG_VERBOSE
 #include "config.h"
 #include "control/control.h"
@@ -35,6 +38,10 @@ void watchdog_feed() {
   TIMERG0.wdt_wprotect = 0;
 }
 
+void watchdog_add_task() {
+	esp_task_wdt_add(NULL);
+}
+
 void tcp_task(void* param) {
 	while(42) {
   		control.update();
@@ -47,10 +54,23 @@ void tcp_task(void* param) {
 	}
 }
 
-void motor_task(void* param) {
+void IRAM_ATTR motor_task(void* param) {
+//	watchdog_add_task();
 	while(42) {
+		ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 		MotorController::instance().trigger();
-		vTaskDelay(1/portTICK_PERIOD_MS);
+//		watchdog_feed();
+	}
+}
+
+hw_timer_t* motor_timer = NULL;
+static TaskHandle_t motor_task_handle = NULL;
+
+void IRAM_ATTR motor_isr() {
+	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+	vTaskNotifyGiveFromISR(motor_task_handle, &xHigherPriorityTaskWoken);
+	if(xHigherPriorityTaskWoken) {
+		portYIELD_FROM_ISR();
 	}
 }
 
@@ -69,7 +89,14 @@ void setup() {
   delay(100);
 
   xTaskCreate(&tcp_task, "tcp_task", 18096, NULL, 5, NULL);
-  xTaskCreate(&motor_task, "motor_task", 18096, NULL, 5, NULL);
+  //xTaskCreate(&motor_task, "motor_task", 18096, NULL, 5, NULL);
+  xTaskCreate(&motor_task, "motor_task", 18096, NULL, 5, &motor_task_handle);
+
+  motor_timer = timerBegin(0, 80, true);
+  timerAttachInterrupt(motor_timer, &motor_isr, true);
+  timerAlarmWrite(motor_timer, 64, true);
+  timerAlarmEnable(motor_timer);
+  //mount.move_absolute(0, 90);
 
 }
 

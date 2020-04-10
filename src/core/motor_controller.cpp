@@ -137,13 +137,13 @@ void MotorController::turn_internal(command_t cmd, bool queueing) {
 
     cli();
 
-#ifdef BOARD_ATMEGA
     // wait 1ms for pins to stabilize if needed
     if (change_pin(DIR_PIN_DEC, (cmd.revs_dec > 0 && DIRECTION_DEC) || (cmd.revs_dec < 0 && !DIRECTION_DEC)) | 
         change_pin(DIR_PIN_RA,  (cmd.revs_ra  > 0 && DIRECTION_RA)  || (cmd.revs_ra  < 0 && !DIRECTION_RA))  |
         change_pin(MS_PIN_DEC, cmd.microstepping) |
         change_pin(MS_PIN_RA,  cmd.microstepping)) delay(1);
 
+#ifdef BOARD_ATMEGA
     #ifdef DEBUG_OUTPUT
         Serial.print(F(" ---> ")); Serial.println(MOTORS_PORT, BIN);
     #endif
@@ -189,6 +189,10 @@ bool MotorController::change_pin(byte pin, byte value) {
 #ifdef BOARD_ATMEGA
     if (((MOTORS_PORT >> pin) & 1) == value) return false;
     MOTORS_PORT ^= (-value ^ MOTORS_PORT) & (1 << pin);
+#else
+	uint8_t state = digitalRead(pin);
+	if(state == value) return false;
+	digitalWrite(pin, !state);
 #endif
     return true;
 }
@@ -296,6 +300,8 @@ int MotorController::motor_trigger(motor_data& data, byte step_pin, byte dir_pin
     MOTORS_PORT ^= (1 << step_pin);
     return (MOTORS_PORT & (1 << ms) ? 1 : MICROSTEPPING_MUL) * (((MOTORS_PORT >> dir_pin) & 1) != dir_swap ? -1 : 1);
 #else
+	// TODO: use proper xor
+	digitalWrite(step_pin, !digitalRead(step_pin));
 	return MICROSTEPPING_MUL * (digitalRead(dir_pin) != dir_swap ? -1 : 1);
 #endif
 

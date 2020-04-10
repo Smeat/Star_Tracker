@@ -4,6 +4,7 @@
 #include "../config.h"
 #include "./queue.h"
 
+// period in µs
 #define TMR_RESOLUTION  64
 #define TIMER_TOP (F_CPU / (1000000.0 / TMR_RESOLUTION))
 
