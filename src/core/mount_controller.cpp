@@ -51,7 +51,9 @@ MountController::coord_t MountController::get_local_mount_orientation() {
     // DEC and RA must be in bounds and this should never happen! exception would be wonderful 
     if (_mount_orientation.dec > 90.0 || _mount_orientation.dec < -90.0 ||
         _mount_orientation.ra > 360.0 || _mount_orientation.ra < 0.0){
-        Serial.println(F("Weird things happed! DEC out of bounds!"));
+        log_e("Weird things happed! DEC out of bounds!");
+		log_e("DEC revs %f RA revs %f", dec_revs_done, ra_revs_done);
+		log_e("Orientation dec %f RA %f", _mount_orientation.dec, _mount_orientation.ra);
     }   
    
     #ifdef DEBUG_OUTPUT_MOUNT
@@ -193,7 +195,10 @@ void MountController::move_absolute_J2000(deg_t angle_dec, deg_t angle_ra) {
 
 void MountController::move_absolute(deg_t angle_dec, deg_t angle_ra) {
 
-    if (angle_dec < -90 || angle_dec > 90 || angle_ra < 0 || angle_ra >= 360) return;
+    if (angle_dec < -90 || angle_dec > 90 || angle_ra < 0 || angle_ra >= 360) {
+		log_e("##### Invalid angle! dec %f, ra %f", angle_dec, angle_ra);
+		return;
+	}
     _motors.stop(); 
     
     coord_t target = polar_to_polar({angle_dec, to_time_global_ra(angle_ra)}, _transition);
@@ -205,16 +210,17 @@ void MountController::move_absolute(deg_t angle_dec, deg_t angle_ra) {
     target = polar_to_polar({angle_dec, to_future_global_ra(angle_ra, travel_time)}, _transition);
     revs = angle_to_revolutions({target.dec - o.dec, target.ra  - o.ra});
 
-    #ifdef DEBUG_OUTPUT_MOUNT
-        Serial.println(F("Turning at high speed by:"));
-        Serial.print(F("       DEC:  ")); Serial.println(target.dec - o.dec);
-        Serial.print(F("       RA:   ")); Serial.println(target.ra  - o.ra);
-        Serial.print(F("  tran DEC:  ")); Serial.print(angle_dec); Serial.print(F(" --> ")); Serial.println(target.dec);
-        Serial.print(F("  tran RA:   ")); Serial.print(angle_ra);  Serial.print(F(" --> ")); Serial.println(target.ra);
-        Serial.print(F("  revs DEC:  ")); Serial.println(revs.dec);
-        Serial.print(F("  revs RA:   ")); Serial.println(revs.ra);
-    #endif
-        
+    //#ifdef DEBUG_OUTPUT_MOUNT
+        log_d("Turning at high speed by:");
+        log_d("       DEC:  %f", target.dec - o.dec);
+        log_d("       RA:   %f", target.ra  - o.ra);
+        log_d("  tran DEC:  %f --> %f", angle_dec, target.dec);
+        log_d("  tran RA:   %f --> %f", angle_ra, target.ra);
+        log_d("  revs DEC:  %f",revs.dec);
+        log_d("  revs RA:   %f",revs.ra);
+		log_d("from DEC %f RA %f to DEC %f RA %f", o.dec, o.ra, target.dec, target.ra);
+    //#endif
+
     _motors.fast_turn(revs.dec, revs.ra, false);
 }
 
@@ -456,12 +462,12 @@ void MountController::set_target_ra(double ra) {
 	this->_current_target.ra = ra;
 	heap_caps_check_integrity_all(true);
 	this->move_absolute(this->_current_target.dec, this->_current_target.ra);
-	this->set_tracking();
+//	this->set_tracking();
 }
 
 void MountController::set_target_dec(double dec) {
 	this->_current_target.dec = dec;
 	heap_caps_check_integrity_all(true);
 	this->move_absolute(this->_current_target.dec, this->_current_target.ra);
-	this->set_tracking();
+//	this->set_tracking();
 }

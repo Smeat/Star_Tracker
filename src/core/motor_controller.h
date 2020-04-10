@@ -44,13 +44,13 @@ class MotorController {
 
         // returns the number of revolutions relative to the starting position
         void get_made_revolutions(double& dec, double& ra) {
-            #ifdef DEBUG_OUTPUT
-                Serial.println(F("Revolutions"));
-                Serial.print(F(" DEC: ")); Serial.println(_dec_balance); 
-                Serial.print(F("  RA: ")); Serial.println(_ra_balance); 
-            #endif
+			xSemaphoreTake(_motor_lock, portMAX_DELAY);
+                //log_d("Revolutions");
+                //log_d(" DEC: %d", _dec_balance); 
+                //log_d("  RA: %d", _ra_balance); 
             dec = (double) _dec_balance / 2.0 / STEPS_PER_REV_DEC / MICROSTEPPING_MUL;
             ra = (double) _ra_balance / 2.0 / STEPS_PER_REV_RA / MICROSTEPPING_MUL;
+			xSemaphoreGive(_motor_lock);
         }
 
     private:
@@ -100,9 +100,9 @@ class MotorController {
         // returns true if 'value' is defferent from current value (1 or 0) and changes pin appropriately 
         inline bool change_pin(byte pin, byte value);
 
-        inline void revs_to_steps(double* steps_dec, double* steps_ra, double revs_dec, double revs_ra, bool microstepping) {
-            *steps_dec = abs(revs_dec) * STEPS_PER_REV_DEC * (microstepping ? MICROSTEPPING_MUL : 1);
-            *steps_ra  = abs(revs_ra)  * STEPS_PER_REV_RA  * (microstepping ? MICROSTEPPING_MUL : 1);
+        inline void revs_to_steps(int* steps_dec, int* steps_ra, double revs_dec, double revs_ra, bool microstepping) {
+            *steps_dec = revs_dec * STEPS_PER_REV_DEC * (microstepping ? MICROSTEPPING_MUL : 1);
+            *steps_ra  = revs_ra  * STEPS_PER_REV_RA  * (microstepping ? MICROSTEPPING_MUL : 1);
         }
 
         inline void steps_to_revs(double* revs_dec, double* revs_ra, double steps_dec, double steps_ra, bool microstepping) {
