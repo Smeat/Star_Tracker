@@ -63,7 +63,7 @@ static void lx200_handle_single_message(uint8_t* msg, uint32_t len) {
 						int raH = ra/15;
 						int raM = ((ra/15.0) -raH)*60;
 						int raS = ((((ra/15.0) -raH)*60) - raM)*60;
-						snprintf(return_msg, 128, "%02d:%02d:%02d#", raH, raM, raS);
+						snprintf(return_msg, 128, "+%02d*%02d'%02d#", raH, raM, raS);
 					}
 					break;
 				default:
