@@ -1,3 +1,5 @@
+#include "config.h"
+#include "esp32-hal-gpio.h"
 #define FROM_LIB
 
 #include <Arduino.h>
@@ -36,6 +38,14 @@ void MotorController::initialize() {
         Serial.print(F("  TCCRxB: ")); Serial.println(TCCR5B, BIN);
         Serial.print(F("  TIMSKx: ")); Serial.println(TIMSK5, BIN);
     #endif
+#else
+	pinMode(STEP_PIN_DEC, OUTPUT);
+	pinMode(DIR_PIN_DEC, OUTPUT);
+	pinMode(MS_PIN_DEC, OUTPUT);
+	pinMode(STEP_PIN_RA, OUTPUT);
+	pinMode(DIR_PIN_RA, OUTPUT);
+	pinMode(MS_PIN_RA, OUTPUT);
+
 #endif
 
     _commands = queue<command_t>(8);
@@ -68,6 +78,9 @@ void MotorController::stop() {
     #ifdef DEBUG_OUTPUT
         Serial.print(F("  PORT:   ")); Serial.println(MOTORS_PORT, BIN);
     #endif
+#else
+	digitalWrite(STEP_PIN_DEC, LOW);
+	digitalWrite(STEP_PIN_RA, LOW);
 #endif
 
     _commands.clear();
