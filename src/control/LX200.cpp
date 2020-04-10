@@ -15,7 +15,11 @@ void lx200_init(MountController* mc) {
 static void lx200_handle_single_message(uint8_t* msg, uint32_t len) {
 	char return_msg[128];
 	return_msg[0] = 0;
-	if(msg[0] != ':' && msg[len-1] != '#'){
+	if(len == 1 && msg[0] == 0x06) {
+		return_msg[0] = 'A';
+		return_msg[1] = 0;
+		goto lx200_end;
+	} else if(msg[0] != ':' && msg[len-1] != '#'){
 		log_d("Ignoring invalid msg: %s", msg);
 		return; // ignore invalid messages
 	}
@@ -92,6 +96,7 @@ static void lx200_handle_single_message(uint8_t* msg, uint32_t len) {
 			break;
 	}
 
+lx200_end:
 	log_i("Got msg %s\n", msg);
 	log_i("Sending msg %s\n", return_msg);
 	tcp_send_packet((uint8_t*)return_msg, strnlen(return_msg, 128));
@@ -100,7 +105,7 @@ static void lx200_handle_single_message(uint8_t* msg, uint32_t len) {
 
 void lx200_handle_message(uint8_t* buf, uint32_t size) {
 	for(uint32_t i = 0; i < size; ++i) {
-		if(buf[i] == '#') {
+		if(buf[i] == '#' || buf[i] == 0x06) {
 			i += 1; // include #
 			lx200_handle_single_message(buf, i);
 			// We move the buf pointer and adjust the size, so we can begin from i=0 again
