@@ -48,29 +48,27 @@ static void lx200_handle_single_message(uint8_t* msg, uint32_t len) {
 				case 'c':
 					snprintf(return_msg, 128, "%d#", 24);
 					break;
-				// FIXME: DEC and RA seem to be switched in KStars/libindi
-				// seems to be fixed now. no clue what I did. _WORST_ protocol I've ever used T_T
 				// telescope RA in HH:MM:SS
 				case 'R':
 				case 'r':
 					{
-						//double ra = mount_controller->get_global_mount_orientation().ra;
-						double ra = mount_controller->get_target().ra;
+						double ra = mount_controller->get_global_mount_orientation().ra;
+						//double ra = mount_controller->get_target().ra;
 						int raH = ra/15;
 						int raM = ((ra/15.0) -raH)*60;
 						int raS = ((((ra/15.0) -raH)*60) - raM)*60;
 						snprintf(return_msg, 128, "%02d:%02d:%02d#", raH, raM, raS);
 					}
 					break;
-				// telescope dec in HH:MM:SS
+				// telescope dec in DD*MM'SS
 				case 'D':
 				case 'd':
 					{
-						//double ra = mount_controller->get_global_mount_orientation().dec;
-						double ra = mount_controller->get_target().dec;
-						int raH = ra/15;
-						int raM = ((ra/15.0) -raH)*60;
-						int raS = ((((ra/15.0) -raH)*60) - raM)*60;
+						double ra = mount_controller->get_global_mount_orientation().dec;
+						//double ra = mount_controller->get_target().dec;
+						int raH = ra;
+						int raM = (ra -raH)*60;
+						int raS = (((ra -raH)*60) - raM)*60;
 						snprintf(return_msg, 128, "+%02d*%02d'%02d#", raH, raM, raS);
 					}
 					break;
@@ -121,12 +119,12 @@ static void lx200_handle_single_message(uint8_t* msg, uint32_t len) {
 				case 'd':
 					{
 						int sign = (msg[4] == '+') ? 1 : -1;
-						int hours = (msg[5] - '0') * 10 + (msg[6] - '0');
+						int deg = (msg[5] - '0') * 10 + (msg[6] - '0');
 						int minutes = (msg[8] - '0') * 10 + (msg[9] - '0');
 						int seconds = (msg[11] - '0') * 10 + (msg[12] - '0');
-						double dec = sign * hours * 15 + minutes/4.0 + seconds/240.0;
+						double dec = sign * (deg + minutes/60.0 + seconds/3600.0);
 						mount_controller->set_target_dec(dec);
-						log_i("Moving dec to %f. %02d:%02d:%02d. msg was %s", dec, hours, minutes, seconds, msg);
+						log_i("Moving dec to %f. %+02d*%02d:%02d. msg was %s", dec, deg, minutes, seconds, msg);
 						snprintf(return_msg, 128, "%d", 1);
 					}
 					break;
