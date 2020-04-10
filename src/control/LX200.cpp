@@ -43,24 +43,27 @@ static void lx200_handle_single_message(uint8_t* msg, uint32_t len) {
 				case 'c':
 					snprintf(return_msg, 128, "%d#", 24);
 					break;
+				// FIXME: DEC and RA seem to be switched in KStars
 				// telescope RA in HH:MM:SS
-				case 'R':
+				case 'D':
 					{
-						double ra = mount_controller->get_global_mount_orientation().ra;
+						//double ra = mount_controller->get_global_mount_orientation().ra;
+						double ra = mount_controller->get_target().ra;
 						int raH = ra/15;
 						int raM = ((ra/15.0) -raH)*60;
 						int raS = ((((ra/15.0) -raH)*60) - raM)*60;
-						snprintf(return_msg, 128, "%02d:%02d:%02d#", raH, raH, raS);
+						snprintf(return_msg, 128, "%02d:%02d:%02d#", raH, raM, raS);
 					}
 					break;
 				// telescope dec in HH:MM:SS
-				case 'D':
+				case 'R':
 					{
-						double ra = mount_controller->get_global_mount_orientation().dec;
+						//double ra = mount_controller->get_global_mount_orientation().dec;
+						double ra = mount_controller->get_target().dec;
 						int raH = ra/15;
 						int raM = ((ra/15.0) -raH)*60;
 						int raS = ((((ra/15.0) -raH)*60) - raM)*60;
-						snprintf(return_msg, 128, "%02d:%02d:%02d#", raH, raH, raS);
+						snprintf(return_msg, 128, "%02d:%02d:%02d#", raH, raM, raS);
 					}
 					break;
 				default:

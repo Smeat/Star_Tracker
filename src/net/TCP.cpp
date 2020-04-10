@@ -90,8 +90,8 @@ void IRAM_ATTR tcp_update(void (*callback)(uint8_t* buf, uint32_t size)) {
 					tcpClients[i] = -1;
 				}
 			} else { // got new data
-				log_i("Got tcp msg with len %d", len);
 				packetBuffer[len] = 0;
+				log_i("Got tcp msg with len %d msg: %s", len, packetBuffer);
 				callback(packetBuffer, len);
 			}
 		}
