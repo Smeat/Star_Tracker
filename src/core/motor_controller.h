@@ -3,6 +3,7 @@
 
 #include "../config.h"
 #include "./queue.h"
+#include "stdint.h"
 
 // period in µs
 #define TMR_RESOLUTION  64
@@ -71,6 +72,8 @@ class MotorController {
              uint32_t start_steps_delay = 0;  // delay between steps at the start of fast movement
              uint32_t target_steps_delay = 0;  // minimal delay between steps during fast movement
              uint32_t current_steps_delay = 0;  // current delay between steps
+			 uint32_t ticks_passed = 0;
+			 uint32_t inactive_us = 0;
         };
 
         // structre holding a command for motors
@@ -129,4 +132,3 @@ ISR(TIMER5_COMPA_vect) { MotorController::instance().trigger(); }
 #endif
 
 #endif
-

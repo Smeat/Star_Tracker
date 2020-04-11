@@ -178,7 +178,7 @@ void MotorController::turn_internal(command_t cmd, bool queueing) {
     if (!cmd.microstepping) {
         double revs_dec, revs_ra;
         steps_to_revs(&revs_dec, &revs_ra, steps_dec - effective_steps_dec, steps_ra - effective_steps_ra, false);
-        //slow_turn(revs_dec, revs_ra, FAST_REVS_PER_SEC_DEC / MICROSTEPPING_MUL, FAST_REVS_PER_SEC_RA / MICROSTEPPING_MUL, true);
+        slow_turn(revs_dec, revs_ra, FAST_REVS_PER_SEC_DEC / MICROSTEPPING_MUL, FAST_REVS_PER_SEC_RA / MICROSTEPPING_MUL, true);
     }
 
 #ifdef BOARD_ATMEGA
@@ -202,11 +202,9 @@ bool MotorController::change_pin(byte pin, byte value) {
 }
 
 void MotorController::step_micros(motor_data* data, int pulses, unsigned long micros_between_steps, bool reverse) {
-	if(data->pulses_remaining) {
-		log_d("Trying to overwrite pulses %d with %d!########", data->pulses_remaining, pulses);
-	}
     data->pulses_remaining = pulses;
 	data->reverse = reverse;
+	data->current_steps_delay = micros_between_steps;
 }
 
 void MotorController::trigger() {
@@ -218,17 +216,6 @@ void MotorController::trigger() {
         turn_internal(_commands.pop(), false);
 		xSemaphoreTake(_motor_lock, portMAX_DELAY);
     }
-	/*if(_dec.pulses_remaining) {
-	_dec_balance += (_dec.reverse ? -1 : 1);
-	--_dec.pulses_remaining;
-	}
-	if(_ra.pulses_remaining) {
-		_ra_balance += (_ra.reverse ? -1 : 1);
-		--_ra.pulses_remaining;
-	}
-	xSemaphoreGive(_motor_lock);
-	return;
-*/
     // DEC motor pulse should be done
     _dec_balance += motor_trigger(_dec, STEP_PIN_DEC, DIR_PIN_DEC, DIRECTION_DEC, MS_PIN_DEC);
 
@@ -238,8 +225,8 @@ void MotorController::trigger() {
     // these calls will take some time so we will probaly miss some next 
     // interrupts but we do not really care because we are changing speed
     // and this does not happen during tracking so everything should be ok
-    //change_motor_speed(_dec, ACCEL_STEPS_DEC * 2, ACCEL_DELAY_DEC);
-    //change_motor_speed(_ra, ACCEL_STEPS_RA * 2, ACCEL_DELAY_RA);
+    change_motor_speed(_dec, ACCEL_STEPS_DEC * 2, ACCEL_DELAY_DEC);
+    change_motor_speed(_ra, ACCEL_STEPS_RA * 2, ACCEL_DELAY_RA);
 	xSemaphoreGive(_motor_lock);
 }
 
@@ -260,7 +247,7 @@ void MotorController::change_motor_speed(motor_data& data, unsigned int change_p
  
         if (accel_desired || decel_desired) {
             double new_steps_delay = data.current_steps_delay - (accel_desired ? 1 : -1) * amount;
-            //step_micros(&data, data.pulses_remaining,  new_steps_delay); 
+            step_micros(&data, data.pulses_remaining,  new_steps_delay, data.reverse); 
             // this procedure take some time (like 100 us) so we may compensate missed intrrupts somehow
         }
 
@@ -271,8 +258,13 @@ void MotorController::change_motor_speed(motor_data& data, unsigned int change_p
 int MotorController::motor_trigger(motor_data& data, byte step_pin, byte dir_pin, bool dir_swap, byte ms) {
 
     if (data.pulses_remaining == 0) return 0;
+	data.inactive_us += TMR_RESOLUTION;
+	if(data.inactive_us < data.current_steps_delay) return 0;
+
     ++data.pulses_to_accel;
     --data.pulses_remaining;
+
+	data.inactive_us = 0;
 #ifdef BOARD_ATMEGA
     MOTORS_PORT ^= (1 << step_pin);
     return (MOTORS_PORT & (1 << ms) ? 1 : MICROSTEPPING_MUL) * (((MOTORS_PORT >> dir_pin) & 1) != dir_swap ? -1 : 1);
