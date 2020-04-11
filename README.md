@@ -140,6 +140,5 @@ The tracking with very badly aligned mount can also be imprecise after some time
 ## Future work
 
 - [ ] enable **serial communication** with *USB* and *Bluetooth*
-- [ ]  **double** floating point **precision** 
 - [ ]  better **speed** computation **while tracking**
 - [ ]  compute **alignment analytically**
