@@ -31,7 +31,7 @@ class RtcDS3231 : public Clock {
 
         inline void set_time(const DateTime& dt) {
             Clock::_time.adjust(dt);
-            Clock::_local_siderial_time_offset = Clock::compute_LST_offset();
+			this->recalc_LST_offset(this->_longitude);
         }
 
         RTC_DS3231 _rtc;

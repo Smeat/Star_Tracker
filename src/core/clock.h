@@ -17,8 +17,12 @@ class SubSecondRTC : public RTC_Millis {
 };
 
 class Clock  {
+	protected:
+		double _longitude = LONGITUDE;
 
     public:
+
+		void set_longitude(double longitude) { _longitude = longitude;}
 
         // acquire current time and call adjust(the_time)
         virtual void obtain_time() = 0;
@@ -44,10 +48,14 @@ class Clock  {
             return dt.hour() + dt.minute() / 60.0 + ((double)dt.second() + _time.sub_second_millis() / 1000.0) / 3600.0;   
         }
 
+		static void recalc_LST_offset(double longitude) {
+			_local_siderial_time_offset =  compute_LST_offset(longitude);
+		}
+
     protected:
 
         // compute local siderial time, precision of few arc seconds
-        static TimeSpan compute_LST_offset() {
+        static TimeSpan compute_LST_offset(double longitude) {
 
             // Arduino cannot handle 64 bit doubles so this
             // https://aa.usno.navy.mil/faq/docs/GAST.php
@@ -73,7 +81,7 @@ class Clock  {
 
             // nutation, precession omitted ...
             double GMST = 0.06570982441908 * (LD2 + LD4) + 24.0 * (RD2 + RD4) + 0.06570982441908 * (RD2 + RD4);
-            GMST += 18.697374558 + LONGITUDE / 15.0;
+            GMST += 18.697374558 + longitude / 15.0;
 
             #ifdef DEBUG_OUTPUT_TIME
                 Serial.print(F("Local siderial time: ")); Serial.println(fmod(GMST, 24.0), 5);
