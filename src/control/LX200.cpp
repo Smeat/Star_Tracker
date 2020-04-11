@@ -107,10 +107,13 @@ static void lx200_handle_single_message(uint8_t* msg, uint32_t len) {
 					snprintf(return_msg, 128, "+00#");
 					break;
 				// current date
+				// XXX: not the offical format but prevents a warning with libindi
 				case 'C':
 					{
 						DateTime curr_time = rt_clock->get_time();
-						snprintf(return_msg, 128, "%02d/%02d/%02d", curr_time.month(), curr_time.day(), curr_time.year());
+						snprintf(return_msg, 128, "%04d-%02d-%02d", curr_time.year(), curr_time.month(), curr_time.day());
+						// the official format
+						//snprintf(return_msg, 128, "%02d/%02d/%02d", curr_time.month(), curr_time.day(), curr_time.year() - 2000);
 					}
 					break;
 				// firmware stuff. currently all TODO
