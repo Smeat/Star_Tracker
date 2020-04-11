@@ -57,8 +57,11 @@ void tcp_task(void* param) {
 
 void IRAM_ATTR motor_task(void* param) {
 //	watchdog_add_task();
+	uint8_t state = 0;
 	while(42) {
 		ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+		digitalWrite(33, state);
+		state = !state;
 		MotorController::instance().trigger();
 //		watchdog_feed();
 	}
@@ -82,15 +85,23 @@ void info_task(void*) {
 		log_v("Moving to 90,0");
 		mount.move_absolute(90, 0);
 		log_v("done!");
-		vTaskDelay(10000/portTICK_PERIOD_MS);
+		// FIXME: timing problem. if delay is too small I don't reach the target
+		// seems to be another problem
+		do {
+			log_v("Waiting for mount controller...");
+			vTaskDelay(10000/portTICK_PERIOD_MS);
+		} while(mount.is_moving());
 		log_v("Moving to 0,0");
 		mount.move_absolute(0, 0);
-		vTaskDelay(10000/portTICK_PERIOD_MS);
+		do {
+			log_v("Waiting for mount controller...");
+			vTaskDelay(10000/portTICK_PERIOD_MS);
+		} while(mount.is_moving());
 	}
 }
 
 void setup() {
-
+	pinMode(33, OUTPUT);
   Serial.begin(SERIAL_BAUD_RATE);
   esp_log_level_set("*", ESP_LOG_VERBOSE);
   Serial.println("Starting tcp, lx200 and wifi");
@@ -103,9 +114,9 @@ void setup() {
   control.initialize();
   delay(100);
 
-  xTaskCreate(&tcp_task, "tcp_task", 18096, NULL, 5, NULL);
-  //xTaskCreate(&info_task, "info_task", 8096, NULL, 5, NULL);
-  xTaskCreate(&motor_task, "motor_task", 8096, NULL, 5, &motor_task_handle);
+  xTaskCreatePinnedToCore(&tcp_task, "tcp_task", 18096, NULL, 5, NULL, 1);
+  xTaskCreatePinnedToCore(&info_task, "info_task", 8096, NULL, 5, NULL, 1);
+  xTaskCreatePinnedToCore(&motor_task, "motor_task", 8096, NULL, 5, &motor_task_handle, 0);
 
   motor_timer = timerBegin(0, 80, true);
   timerAttachInterrupt(motor_timer, &motor_isr, true);

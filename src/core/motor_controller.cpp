@@ -1,5 +1,6 @@
 #include "config.h"
 #include "esp32-hal-gpio.h"
+#include "freertos/portmacro.h"
 #define FROM_LIB
 
 #include <Arduino.h>
@@ -141,27 +142,11 @@ void MotorController::turn_internal(command_t cmd, bool queueing) {
 	log_d("turning by DEC %f RA %f revs, %d %d steps %d %d balance",cmd.revs_dec, cmd.revs_ra, steps_dec, steps_ra, this->_dec_balance, this->_ra_balance);
 	log_d("total steps ra %d dec %d", _dec_balance, _ra_balance);
 	
-#ifdef BOARD_ATMEGA
-    #ifdef DEBUG_OUTPUT
-        Serial.println(F("Setting DIR and MS pins:"));
-        Serial.print(F("  PORT:  ")); Serial.print(MOTORS_PORT, BIN);
-    #endif
-#endif
-
     //cli();
 
     // wait 1ms for pins to stabilize if needed
-    volatile uint8_t changed = change_pin(DIR_PIN_DEC, (cmd.revs_dec > 0 && DIRECTION_DEC) || (cmd.revs_dec < 0 && !DIRECTION_DEC));
-    changed |= change_pin(DIR_PIN_RA,  (cmd.revs_ra  > 0 && DIRECTION_RA)  || (cmd.revs_ra  < 0 && !DIRECTION_RA));
-    changed |= change_pin(MS_PIN_DEC, cmd.microstepping);
-	changed |= change_pin(MS_PIN_RA,  cmd.microstepping);
-	if(changed) delay(1);
-
-#ifdef BOARD_ATMEGA
-    #ifdef DEBUG_OUTPUT
-        Serial.print(F(" ---> ")); Serial.println(MOTORS_PORT, BIN);
-    #endif
-#endif
+    bool dec_rev = cmd.revs_dec < 0;
+	bool ra_rev = cmd.revs_ra < 0;
 
 
     int32_t effective_steps_dec = steps_dec;
@@ -179,8 +164,8 @@ void MotorController::turn_internal(command_t cmd, bool queueing) {
     _dec.start_steps_delay = cmd.delay_start_dec;
     _ra.start_steps_delay  = cmd.delay_start_ra;
 
-    step_micros(&_dec, effective_steps_dec * 2, _dec.start_steps_delay);
-    step_micros(&_ra,  effective_steps_ra  * 2, _ra.start_steps_delay);
+    step_micros(&_dec, effective_steps_dec * 2, _dec.start_steps_delay, dec_rev);
+    step_micros(&_ra,  effective_steps_ra  * 2, _ra.start_steps_delay, ra_rev);
         log_d("Initializing new movement.");
         log_d("  revs DEC:       %f", cmd.revs_dec);
         log_d("  resv RA:        %f", cmd.revs_ra);
@@ -193,7 +178,7 @@ void MotorController::turn_internal(command_t cmd, bool queueing) {
     if (!cmd.microstepping) {
         double revs_dec, revs_ra;
         steps_to_revs(&revs_dec, &revs_ra, steps_dec - effective_steps_dec, steps_ra - effective_steps_ra, false);
-        slow_turn(revs_dec, revs_ra, FAST_REVS_PER_SEC_DEC / MICROSTEPPING_MUL, FAST_REVS_PER_SEC_RA / MICROSTEPPING_MUL, true);
+        //slow_turn(revs_dec, revs_ra, FAST_REVS_PER_SEC_DEC / MICROSTEPPING_MUL, FAST_REVS_PER_SEC_RA / MICROSTEPPING_MUL, true);
     }
 
 #ifdef BOARD_ATMEGA
@@ -211,43 +196,17 @@ bool MotorController::change_pin(byte pin, byte value) {
 	uint8_t state = digitalRead(pin);
 	if(state == value) return false;
 	digitalWrite(pin, value);
+	log_d("Changed pin %d to %d", pin, value);
 #endif
     return true;
 }
 
-void MotorController::step_micros(motor_data* data, int pulses, unsigned long micros_between_steps) {
-
-    data->current_steps_delay = micros_between_steps;
-
-    #ifdef DEBUG_OUTPUT
-        Serial.println(F("Steps to be done:"));
-        Serial.print(F("  ")); Serial.print(pulses / 2); Serial.print(F(", delay (us): ")); Serial.println(micros_between_steps);
-    #endif
-
+void MotorController::step_micros(motor_data* data, int pulses, unsigned long micros_between_steps, bool reverse) {
+	if(data->pulses_remaining) {
+		log_d("Trying to overwrite pulses %d with %d!########", data->pulses_remaining, pulses);
+	}
     data->pulses_remaining = pulses;
-
-    double mcu_ticks_per_pulse = micros_between_steps / 2.0 / TMR_RESOLUTION;
-
-    #ifdef DEBUG_OUTPUT
-        Serial.println(F("MCU ticks per one pulse:"));
-        Serial.print(F("  ")); Serial.println(mcu_ticks_per_pulse); 
-    #endif
-
-    data->mcu_ticks_per_pulse = mcu_ticks_per_pulse;
-
-    data->pulses_to_correct = 0;
-    double err = mcu_ticks_per_pulse - data->mcu_ticks_per_pulse;
-    if (err == 0.0) data->pulses_to_correct = 0;
-    else data->pulses_to_correct = 1.0 / err;
-
-    #ifdef DEBUG_OUTPUT
-        Serial.println(F("Number of pulses after which is added an empty tick:"));
-        Serial.print(F("  ")); Serial.println(data->pulses_to_correct); 
-    #endif
-
-    data->ticks_passed = 0;
-    data->pulses_until_correction = 0;
-    data->correction = false;
+	data->reverse = reverse;
 }
 
 void MotorController::trigger() {
@@ -259,7 +218,17 @@ void MotorController::trigger() {
         turn_internal(_commands.pop(), false);
 		xSemaphoreTake(_motor_lock, portMAX_DELAY);
     }
-
+	/*if(_dec.pulses_remaining) {
+	_dec_balance += (_dec.reverse ? -1 : 1);
+	--_dec.pulses_remaining;
+	}
+	if(_ra.pulses_remaining) {
+		_ra_balance += (_ra.reverse ? -1 : 1);
+		--_ra.pulses_remaining;
+	}
+	xSemaphoreGive(_motor_lock);
+	return;
+*/
     // DEC motor pulse should be done
     _dec_balance += motor_trigger(_dec, STEP_PIN_DEC, DIR_PIN_DEC, DIRECTION_DEC, MS_PIN_DEC);
 
@@ -269,8 +238,8 @@ void MotorController::trigger() {
     // these calls will take some time so we will probaly miss some next 
     // interrupts but we do not really care because we are changing speed
     // and this does not happen during tracking so everything should be ok
-    change_motor_speed(_dec, ACCEL_STEPS_DEC * 2, ACCEL_DELAY_DEC);
-    change_motor_speed(_ra, ACCEL_STEPS_RA * 2, ACCEL_DELAY_RA);
+    //change_motor_speed(_dec, ACCEL_STEPS_DEC * 2, ACCEL_DELAY_DEC);
+    //change_motor_speed(_ra, ACCEL_STEPS_RA * 2, ACCEL_DELAY_RA);
 	xSemaphoreGive(_motor_lock);
 }
 
@@ -291,9 +260,8 @@ void MotorController::change_motor_speed(motor_data& data, unsigned int change_p
  
         if (accel_desired || decel_desired) {
             double new_steps_delay = data.current_steps_delay - (accel_desired ? 1 : -1) * amount;
-            step_micros(&data, data.pulses_remaining,  new_steps_delay); 
+            //step_micros(&data, data.pulses_remaining,  new_steps_delay); 
             // this procedure take some time (like 100 us) so we may compensate missed intrrupts somehow
-            data.ticks_passed += 2; 
         }
 
         data.pulses_to_accel = 0;
@@ -303,29 +271,16 @@ void MotorController::change_motor_speed(motor_data& data, unsigned int change_p
 int MotorController::motor_trigger(motor_data& data, byte step_pin, byte dir_pin, bool dir_swap, byte ms) {
 
     if (data.pulses_remaining == 0) return 0;
-/*    if (!data.correction) ++data.ticks_passed;
-
-    if (data.ticks_passed < data.mcu_ticks_per_pulse) return 0;
-
-    if (data.pulses_to_correct != 0 && ++data.pulses_until_correction == data.pulses_to_correct) {
-        data.pulses_until_correction = 0;
-        data.correction = true;
-    }
-    else data.correction = false;
-*/
     ++data.pulses_to_accel;
     --data.pulses_remaining;
-    data.ticks_passed = 0;
 #ifdef BOARD_ATMEGA
     MOTORS_PORT ^= (1 << step_pin);
     return (MOTORS_PORT & (1 << ms) ? 1 : MICROSTEPPING_MUL) * (((MOTORS_PORT >> dir_pin) & 1) != dir_swap ? -1 : 1);
 #else
 	// TODO: use proper xor
+	digitalWrite(dir_pin, data.reverse);
 	digitalWrite(step_pin, !digitalRead(step_pin));
-	int8_t retval =  (digitalRead(ms) ? 1 : MICROSTEPPING_MUL) * (digitalRead(dir_pin) != dir_swap ? -1 : 1);
-	if(abs(retval) != 1) {
-		log_e("#####WTF! retval wrong %d", retval);
-	}
+	int8_t retval =  (digitalRead(ms) ? 1 : MICROSTEPPING_MUL) * (data.reverse ? -1 : 1);
 	return retval;
 #endif
 

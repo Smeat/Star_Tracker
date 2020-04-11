@@ -201,12 +201,15 @@ void MountController::move_absolute(deg_t angle_dec, deg_t angle_ra) {
 	}
     _motors.stop(); 
     
+	log_d("trying to get data");
     coord_t target = polar_to_polar({angle_dec, to_time_global_ra(angle_ra)}, _transition);
     coord_t o = get_local_mount_orientation();
+	log_d("Angle to res");
     
     coord_t revs = angle_to_revolutions({target.dec - o.dec, target.ra  - o.ra});
     double travel_time = _motors.estimate_fast_turn_time(revs.dec, revs.ra) / 1000.0 / 3600.0;
 
+	log_d("polar to polar");
     target = polar_to_polar({angle_dec, to_future_global_ra(angle_ra, travel_time)}, _transition);
     revs = angle_to_revolutions({target.dec - o.dec, target.ra  - o.ra});
 
