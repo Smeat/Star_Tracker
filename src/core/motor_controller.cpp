@@ -1,6 +1,7 @@
 #include "config.h"
 #include "esp32-hal-gpio.h"
 #include "freertos/portmacro.h"
+#include "stdint.h"
 #define FROM_LIB
 
 #include <Arduino.h>
@@ -124,16 +125,14 @@ void MotorController::fast_turn(double revs_dec, double revs_ra, boolean queuein
 void MotorController::slow_turn(double revs_dec, double revs_ra, double speed_dec, double speed_ra, boolean queueing) {
     // revolutions per second convert to delay in micros
     // there might be some overflows, but nobody cares ... (hopefully)
-    double delay_dec = 1000000.0 / (speed_dec * STEPS_PER_REV_DEC * MICROSTEPPING_MUL);
-    double delay_ra  = 1000000.0 / (speed_ra  * STEPS_PER_REV_RA  * MICROSTEPPING_MUL);
+    uint32_t delay_dec = 1000000.0 / (speed_dec * STEPS_PER_REV_DEC * MICROSTEPPING_MUL);
+    uint32_t delay_ra  = 1000000.0 / (speed_ra  * STEPS_PER_REV_RA  * MICROSTEPPING_MUL);
     turn_internal({revs_dec, revs_ra, delay_dec, delay_ra, delay_dec, delay_ra, true}, queueing);
 }
 
 void MotorController::turn_internal(command_t cmd, bool queueing) {
     if (queueing && !is_ready()) {
-		log_i("queing cmd");
         _commands.push(cmd);
-		log_i("done");
         return;
     }
 	xSemaphoreTake(_motor_lock, portMAX_DELAY);
@@ -204,6 +203,7 @@ bool MotorController::change_pin(byte pin, byte value) {
 void MotorController::step_micros(motor_data* data, int pulses, unsigned long micros_between_steps, bool reverse) {
     data->pulses_remaining = pulses;
 	data->reverse = reverse;
+	if(micros_between_steps != data->current_steps_delay) log_d("Changed delay from %ul to %ul", data->current_steps_delay, micros_between_steps);
 	data->current_steps_delay = micros_between_steps;
 }
 
@@ -246,7 +246,7 @@ void MotorController::change_motor_speed(motor_data& data, unsigned int change_p
         }
  
         if (accel_desired || decel_desired) {
-            double new_steps_delay = data.current_steps_delay - (accel_desired ? 1 : -1) * amount;
+            int new_steps_delay = data.current_steps_delay - (accel_desired ? 1 : -1) * amount;
             step_micros(&data, data.pulses_remaining,  new_steps_delay, data.reverse); 
             // this procedure take some time (like 100 us) so we may compensate missed intrrupts somehow
         }

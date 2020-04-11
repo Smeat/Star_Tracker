@@ -63,6 +63,7 @@ class MountController {
 	void set_target_ra(double ra);
 	void set_target_dec(double dec);
 	coord_t get_target() { return this->_current_target;}
+	void update_tracking();
 
     // moves the mount to 0, 0 in local coordinates
     void set_parking();

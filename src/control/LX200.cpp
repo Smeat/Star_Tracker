@@ -53,7 +53,6 @@ static void lx200_handle_single_message(uint8_t* msg, uint32_t len) {
 				case 'r':
 					{
 						double ra = mount_controller->get_global_mount_orientation().ra;
-						//double ra = mount_controller->get_target().ra;
 						int raH = ra/15;
 						int raM = ((ra/15.0) -raH)*60;
 						int raS = ((((ra/15.0) -raH)*60) - raM)*60;
@@ -64,12 +63,11 @@ static void lx200_handle_single_message(uint8_t* msg, uint32_t len) {
 				case 'D':
 				case 'd':
 					{
-						double ra = mount_controller->get_global_mount_orientation().dec;
-						//double ra = mount_controller->get_target().dec;
-						int raH = ra;
-						int raM = (ra -raH)*60;
-						int raS = (((ra -raH)*60) - raM)*60;
-						snprintf(return_msg, 128, "%+02d*%02d'%02d#", raH, abs(raM), abs(raS));
+						double dec = mount_controller->get_global_mount_orientation().dec;
+						int decH = dec;
+						int decM = (dec -decH)*60;
+						int decS = (((dec -decH)*60) - decM)*60;
+						snprintf(return_msg, 128, "%+02d*%02d'%02d#", decH, abs(decM), abs(decS));
 					}
 					break;
 				// site names

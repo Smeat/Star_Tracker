@@ -15,14 +15,14 @@
 
 #define REDUCTION_RATIO_DEC     1              // reduction ratio of DEC motor gearbox (1:8)
 #define REDUCTION_RATIO_RA      1              // reduction ratio of RA motor gearbox (1:8)
-#define DEG_PER_MOUNT_REV_DEC   5 // reduction ratio of DEC mount gears (1:67)
-#define DEG_PER_MOUNT_REV_RA    5  // reduction ratio of DEC mount gears (1:134)
+#define DEG_PER_MOUNT_REV_DEC   1 // reduction ratio of DEC mount gears (1:67)
+#define DEG_PER_MOUNT_REV_RA    1  // reduction ratio of DEC mount gears (1:134)
 
 #define DIRECTION_DEC           0    // 1 or 0 to swap DEC movement direction
 #define DIRECTION_RA            0    // 1 or 0 to swap RA movement direction
 
 #define DEFAULT_POLE_RA         0    // default equatorial coordinates of the mount pole 
-#define DEFAULT_POLE_DEC        90   // these values are changed during alignment
+#define DEFAULT_POLE_DEC        5   // these values are changed during alignment
 #define DEFUALT_RA_OFFSET       0    // offset of RA axis (defines where mount's local RA is 0)
 
 
@@ -62,18 +62,21 @@
 
 #define MICROSTEPPING_MUL       1   // level of microstepping (depends of your wiring of A4988 pins)
 
-#define STEPS_PER_REV_DEC       (1*200)     // number of steps per DEC motor revolution (200 for NEMA 17)
-#define STEPS_PER_REV_RA        (1*200)     // number of steps per RA motor revolution (200 for NEMA 17)
+#define STEPS_PER_REV_DEC       (16*200)     // number of steps per DEC motor revolution (200 for NEMA 17)
+#define STEPS_PER_REV_RA        (16*200)     // number of steps per RA motor revolution (200 for NEMA 17)
+
+// period in µs
+#define TMR_RESOLUTION  64
 
 #define ACCEL_STEPS_DEC         256     // every ACCEL_STEPS_DEC steps is the delay in/decreased by
 #define ACCEL_DELAY_DEC         64      // ACCEL_DELAY_DEC (should be even, multiple of 2)
 #define FAST_DELAY_START_DEC    2048    // DEC delay at the start of fast movement (2048 us, ~488 Hz)
-#define FAST_DELAY_END_DEC      1024    // DEC delay at the end of fast movement (1024 us, ~976 Hz)
+#define FAST_DELAY_END_DEC      0    // DEC delay at the end of fast movement (1024 us, ~976 Hz)
 
 #define ACCEL_STEPS_RA          256     // every ACCEL_STEPS_RA steps is the delay in/decreased by
 #define ACCEL_DELAY_RA          64      // ACCEL_DELAY_RA (should be even, multiple of 2)
 #define FAST_DELAY_START_RA     2048    // RA delay at the start of fast movement (2048 us, ~488 Hz)
-#define FAST_DELAY_END_RA       1024    // RA delay at the end of fast movement (1024 us, ~976 Hz)
+#define FAST_DELAY_END_RA       0    // RA delay at the end of fast movement (1024 us, ~976 Hz)
 
 #define FAST_REVS_PER_SEC_DEC   1000000.0 / FAST_DELAY_START_DEC / STEPS_PER_REV_DEC 
 #define FAST_REVS_PER_SEC_RA    1000000.0 / FAST_DELAY_START_RA  / STEPS_PER_REV_RA

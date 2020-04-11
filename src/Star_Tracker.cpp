@@ -91,8 +91,8 @@ void info_task(void*) {
 			log_v("Waiting for mount controller...");
 			vTaskDelay(10000/portTICK_PERIOD_MS);
 		} while(mount.is_moving());
-		log_v("Moving to 0,0");
-		mount.move_absolute(0, 0);
+		log_v("Moving to -20,0");
+		mount.move_absolute(-20, 0);
 		do {
 			log_v("Waiting for mount controller...");
 			vTaskDelay(10000/portTICK_PERIOD_MS);
@@ -115,16 +115,18 @@ void setup() {
   delay(100);
 
   xTaskCreatePinnedToCore(&tcp_task, "tcp_task", 18096, NULL, 5, NULL, 1);
-  xTaskCreatePinnedToCore(&info_task, "info_task", 8096, NULL, 5, NULL, 1);
+//  xTaskCreatePinnedToCore(&info_task, "info_task", 8096, NULL, 5, NULL, 1);
   xTaskCreatePinnedToCore(&motor_task, "motor_task", 8096, NULL, 5, &motor_task_handle, 0);
 
   motor_timer = timerBegin(0, 80, true);
   timerAttachInterrupt(motor_timer, &motor_isr, true);
-  timerAlarmWrite(motor_timer, 64, true);
+  timerAlarmWrite(motor_timer, TMR_RESOLUTION, true);
   timerAlarmEnable(motor_timer);
 
 }
 
 void loop() {
+	mount.update_tracking();
+	vTaskDelay(10/portTICK_PERIOD_MS);
 //	watchdog_feed();
 }

@@ -301,6 +301,8 @@ void MountController::move_relative_global(deg_t angle_dec, deg_t angle_ra) {
 
 void MountController::set_tracking() {
 
+    _is_tracking = true;
+	return;
     // TODO: it would be nice to change the speed dynamically after some time, based on the time
     // ellapsed from the start of the movement. Unfortunately it would require a schedule 
     // of steppers speed and a clever correction (we are doing a conversion of a complex
@@ -311,18 +313,16 @@ void MountController::set_tracking() {
     coord_t target = get_global_mount_orientation();
     coord_t speed = get_ra_speed_transform(w, 0.0, target, _mount_pole, _mount_ra_offset);
 
-    #ifdef DEBUG_OUTPUT_MOUNT
-        Serial.println(F("Tracking:"));
-        Serial.print(F("  target DEC: ")); Serial.println(target.dec);
-        Serial.print(F("  target RA:  ")); Serial.println(target.ra);
-        Serial.print(F("  speed DEC (dps): ")); Serial.println(speed.dec / 3600.0, 7);  // 0.0 
-        Serial.print(F("  speed RA (dps):  ")); Serial.println(speed.ra  / 3600.0, 7);  // 0.0041667
-    #endif
+    log_d("Tracking:");
+    log_d("  target DEC: %f", target.dec);
+    log_d("  target RA:  %f", target.ra);
+    log_d("  speed DEC (dps): %f", speed.dec / 3600.0);  // 0.0 
+    log_d("  speed RA (dps):  %f", speed.ra  / 3600.0);  // 0.0041667
 
     speed = angle_to_revolutions(speed);
-    _motors.slow_turn(speed.dec, speed.ra, speed.dec / 3600.0, speed.ra / 3600.0, true);
+	//TODO: determine why we need 2* here. Is is an error on my side?
+    _motors.slow_turn(speed.dec, speed.ra, 2* speed.dec / 3600.0, 2*speed.ra / 3600.0, true);
     
-    _is_tracking = true;
 }
 
 void MountController::set_parking() {
@@ -465,12 +465,18 @@ void MountController::set_target_ra(double ra) {
 	this->_current_target.ra = ra;
 	heap_caps_check_integrity_all(true);
 	this->move_absolute(this->_current_target.dec, this->_current_target.ra);
-//	this->set_tracking();
+	this->set_tracking();
 }
 
 void MountController::set_target_dec(double dec) {
 	this->_current_target.dec = dec;
 	heap_caps_check_integrity_all(true);
 	this->move_absolute(this->_current_target.dec, this->_current_target.ra);
-//	this->set_tracking();
+	this->set_tracking();
+}
+
+void MountController::update_tracking() {
+	if(_is_tracking && !this->is_moving()) {
+		this->move_absolute(this->_current_target.dec, this->_current_target.ra);
+	}
 }
