@@ -4,7 +4,7 @@
    * SIMBAD library for Vmag <11 is about 16mb for the data and 30mb for the names
  * Use a nokia 5110 LCD with red backlight LEDs
  * Visual representation on the screen
- * WiFi connection to KStars/Stellarium
+ * WiFi connection to KStars/Stellarium -> done with LX200
  * ESP32 support only for now (8bit support may return once the esp32 is running)
 # Arduino Star Tracker
 
@@ -27,6 +27,8 @@ See [future work](#future-work) for missing features (like communication via USB
 * **Camera control** which alows you to take photos with predefined exposure time and with a predefined period.
 * **Wireless control** via IR remote control.
 * Real **asynchronous** control of **stepper motors** (any other code can be run in parallel). 
+* **LX200** support
+
 
 ## Hardware setup
 
@@ -138,7 +140,6 @@ The tracking with very badly aligned mount can also be imprecise after some time
 ## Future work
 
 - [ ] enable **serial communication** with *USB* and *Bluetooth*
-- [ ] **LX200** support
 - [ ]  **double** floating point **precision** 
 - [ ]  better **speed** computation **while tracking**
 - [ ]  compute **alignment analytically**
